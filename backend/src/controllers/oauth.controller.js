@@ -104,6 +104,5 @@ const makeHandlers = (provider) => ({
 
 module.exports = {
   google: makeHandlers('google'),
-  github: makeHandlers('github'),
-  linkedin: makeHandlers('linkedin'),
 };
+
