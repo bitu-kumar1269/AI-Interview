@@ -1,0 +1,126 @@
+---
+- name: Deploy AI-Interviewer (backend + frontend) to EC2
+  hosts: app_servers
+  become: true
+  vars_files:
+    - vars/secrets.yml # copy secrets.yml.example -> secrets.yml and fill it in first
+  vars:
+    app_dir: "{{ app_dir_override | default('/opt/ai-interviewer') }}"
+    backend_port: "{{ backend_env.PORT | default(5000) }}"
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install prerequisites
+      apt:
+        name:
+          - git
+          - curl
+          - build-essential
+        state: present
+
+    - name: Add NodeSource repo for Node.js 20.x
+      shell: curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+      args:
+        creates: /etc/apt/sources.list.d/nodesource.list
+
+    - name: Install Node.js
+      apt:
+        name: nodejs
+        state: present
+
+    - name: Install PM2 globally
+      npm:
+        name: pm2
+        global: yes
+
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Install Redis server (used by ioredis in the backend)
+      apt:
+        name: redis-server
+        state: present
+
+    - name: Enable and start Redis
+      service:
+        name: redis-server
+        state: started
+        enabled: yes
+
+    - name: Clone/update the AI-Interviewer repository
+      git:
+        repo: "{{ app_repo }}"
+        dest: "{{ app_dir }}"
+        version: "{{ git_branch }}"
+        force: yes
+
+    # ---------- Backend ----------
+    - name: Write backend .env from vars/secrets.yml
+      template:
+        src: templates/backend.env.j2
+        dest: "{{ app_dir }}/backend/.env"
+        mode: "0600"
+
+    - name: Install backend dependencies
+      npm:
+        path: "{{ app_dir }}/backend"
+        production: true
+
+    - name: Start/restart backend with PM2
+      shell: |
+        cd {{ app_dir }}/backend && pm2 delete ai-interviewer-backend || true
+        cd {{ app_dir }}/backend && pm2 start src/server.js --name ai-interviewer-backend
+
+    - name: Save PM2 process list and enable startup on boot
+      shell: |
+        pm2 save
+        pm2 startup systemd -u ubuntu --hp /home/ubuntu | tail -1 | bash
+
+    # ---------- Frontend ----------
+    - name: Write frontend .env from vars/secrets.yml
+      template:
+        src: templates/frontend.env.j2
+        dest: "{{ app_dir }}/frontend/.env"
+        mode: "0644"
+
+    - name: Install frontend dependencies
+      npm:
+        path: "{{ app_dir }}/frontend"
+
+    - name: Build frontend (Vite production build)
+      shell: cd {{ app_dir }}/frontend && npm run build
+
+    # ---------- Nginx ----------
+    - name: Configure Nginx to serve frontend + proxy backend
+      template:
+        src: templates/nginx-ai-interviewer.conf.j2
+        dest: /etc/nginx/sites-available/ai-interviewer
+      notify: restart nginx
+
+    - name: Enable the site
+      file:
+        src: /etc/nginx/sites-available/ai-interviewer
+        dest: /etc/nginx/sites-enabled/ai-interviewer
+        state: link
+
+    - name: Remove default Nginx site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Test and restart Nginx now (in case notify didn't fire yet)
+      service:
+        name: nginx
+        state: restarted
+        enabled: yes
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
