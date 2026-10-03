@@ -16,25 +16,37 @@ const axios = require('axios');
 // ─────────────────────────────────────────────────────────────────
 // GOOGLE
 // ─────────────────────────────────────────────────────────────────
+const getGoogleCallbackUrl = (customUrl) => {
+  if (customUrl) return customUrl;
+  if (process.env.GOOGLE_CALLBACK_URL) return process.env.GOOGLE_CALLBACK_URL;
+  const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5001}`;
+  return `${backendUrl.replace(/\/+$/, '')}/api/auth/google/callback`;
+};
+
 const google = {
-  getAuthUrl() {
+  getAuthUrl(state, callbackUrl) {
+    const redirect_uri = getGoogleCallbackUrl(callbackUrl);
     const params = new URLSearchParams({
       client_id: process.env.GOOGLE_CLIENT_ID,
-      redirect_uri: process.env.GOOGLE_CALLBACK_URL,
+      redirect_uri,
       response_type: 'code',
       scope: 'openid email profile',
       access_type: 'offline',
       prompt: 'select_account',
     });
+    if (state) {
+      params.set('state', state);
+    }
     return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
   },
 
-  async exchangeCodeForProfile(code) {
+  async exchangeCodeForProfile(code, callbackUrl) {
+    const redirect_uri = getGoogleCallbackUrl(callbackUrl);
     const { data: tokenData } = await axios.post('https://oauth2.googleapis.com/token', {
       code,
       client_id: process.env.GOOGLE_CLIENT_ID,
       client_secret: process.env.GOOGLE_CLIENT_SECRET,
-      redirect_uri: process.env.GOOGLE_CALLBACK_URL,
+      redirect_uri,
       grant_type: 'authorization_code',
     });
 

@@ -7,6 +7,25 @@ const getPrimaryClientUrl = () => {
   return raw.split(',')[0].trim().replace(/\/+$/, '');
 };
 
+const isAllowedClientUrl = (url) => {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    const origin = parsed.origin;
+    const allowed = (process.env.CLIENT_URL || 'http://localhost:5173')
+      .split(',')
+      .map((u) => u.trim().replace(/\/+$/, ''));
+    if (allowed.includes(origin)) return true;
+    // Allow localhost and 127.0.0.1 on any port in dev
+    if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
+    // Allow Render deployments
+    if (/^https:\/\/[a-zA-Z0-9-]+\.onrender\.com$/.test(origin)) return true;
+    return false;
+  } catch {
+    return false;
+  }
+};
+
 /**
  * Finds an existing user by provider ID or email, or creates a new one.
  * Links the provider ID onto an existing email/password account if it
@@ -44,16 +63,16 @@ const findOrCreateOAuthUser = async ({ provider, profile }) => {
  * Tokens are passed as URL fragments (#) rather than query params so
  * they are never sent to the server or logged in server access logs.
  */
-const redirectWithTokens = (res, user) => {
-  const clientUrl = getPrimaryClientUrl();
+const redirectWithTokens = (res, user, returnTo) => {
+  const clientUrl = (returnTo && isAllowedClientUrl(returnTo)) ? returnTo : getPrimaryClientUrl();
   const accessToken = generateAccessToken(user._id);
   const refreshToken = generateRefreshToken(user._id);
   const redirectUrl = `${clientUrl}/oauth-callback#accessToken=${accessToken}&refreshToken=${refreshToken}`;
   res.redirect(redirectUrl);
 };
 
-const redirectWithError = (res, message) => {
-  const clientUrl = getPrimaryClientUrl();
+const redirectWithError = (res, message, returnTo) => {
+  const clientUrl = (returnTo && isAllowedClientUrl(returnTo)) ? returnTo : getPrimaryClientUrl();
   const redirectUrl = `${clientUrl}/login?oauthError=${encodeURIComponent(message)}`;
   res.redirect(redirectUrl);
 };
@@ -62,42 +81,65 @@ const redirectWithError = (res, message) => {
 // repeating the same try/catch boilerplate three times.
 const makeHandlers = (provider) => ({
   redirect: (req, res) => {
-    res.redirect(oauthService[provider].getAuthUrl());
+    let returnTo = req.query.returnTo;
+    if (!returnTo && req.headers.referer) {
+      try {
+        const refUrl = new URL(req.headers.referer);
+        returnTo = refUrl.origin;
+      } catch (e) {}
+    }
+
+    let state;
+    if (returnTo && isAllowedClientUrl(returnTo)) {
+      state = Buffer.from(JSON.stringify({ returnTo })).toString('base64url');
+    }
+
+    res.redirect(oauthService[provider].getAuthUrl(state));
   },
 
   callback: async (req, res) => {
-    const { code, error, error_description: errorDescription } = req.query;
+    const { code, error, error_description: errorDescription, state } = req.query;
+
+    let returnTo = null;
+    if (state) {
+      try {
+        const decoded = JSON.parse(Buffer.from(state, 'base64url').toString('utf8'));
+        if (decoded?.returnTo && isAllowedClientUrl(decoded.returnTo)) {
+          returnTo = decoded.returnTo;
+        }
+      } catch (e) {}
+    }
 
     if (error) {
-      return redirectWithError(res, errorDescription || `${provider} sign-in was cancelled.`);
+      return redirectWithError(res, errorDescription || `${provider} sign-in was cancelled.`, returnTo);
     }
     if (!code) {
-      return redirectWithError(res, `Missing authorization code from ${provider}.`);
+      return redirectWithError(res, `Missing authorization code from ${provider}.`, returnTo);
     }
 
     try {
       const profile = await oauthService[provider].exchangeCodeForProfile(code);
 
       if (!profile.email) {
-        return redirectWithError(res, `${provider} did not provide an email address.`);
+        return redirectWithError(res, `${provider} did not provide an email address.`, returnTo);
       }
 
       const user = await findOrCreateOAuthUser({ provider, profile });
 
       if (!user.isActive) {
-        return redirectWithError(res, 'Your account has been deactivated.');
+        return redirectWithError(res, 'Your account has been deactivated.', returnTo);
       }
       if (user.isBanned) {
-        return redirectWithError(res, 'Your account has been banned due to violation of terms.');
+        return redirectWithError(res, 'Your account has been banned due to violation of terms.', returnTo);
       }
 
       user.lastLogin = new Date();
       await user.save({ validateBeforeSave: false });
 
-      redirectWithTokens(res, user);
+      redirectWithTokens(res, user, returnTo);
     } catch (err) {
       console.error(`[OAuth:${provider}] callback failed:`, err.response?.data || err.message);
-      redirectWithError(res, `${provider} sign-in failed. Please try again.`);
+      redirectWithError(res, `${provider} sign-in failed. Please try again.`, returnTo);
     }
   },
 });

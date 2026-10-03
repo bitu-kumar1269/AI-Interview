@@ -5,6 +5,8 @@ const oauth = require('../controllers/oauth.controller');
 // Google
 router.get('/google', oauth.google.redirect);
 router.get('/google/callback', oauth.google.callback);
+router.get('/oauth-callback', oauth.google.callback);
+router.get('/callback', oauth.google.callback);
 
 module.exports = router;
 

@@ -28,6 +28,7 @@ const sessionRoutes   = require('./routes/session.routes');
 const jobsRoutes      = require('./routes/jobs.routes');
 const adminRoutes     = require('./routes/admin.routes');
 const oauthRoutes     = require('./routes/oauth.routes');
+const oauthController = require('./controllers/oauth.controller');
 
 const app = express();
 
@@ -145,6 +146,11 @@ app.use('/api/sessions',   sessionRoutes);
 app.use('/api/jobs',       jobsRoutes);
 app.use('/api/admin',      adminRoutes);
 app.use('/api/auth',       oauthRoutes);
+
+// ─── OAuth Root Callback Aliases ──────────────────────────────────
+// Supports providers/Google Console registered with root /oauth-callback or /callback
+app.get('/oauth-callback', oauthController.google.callback);
+app.get('/callback',       oauthController.google.callback);
 
 // ─── 404 Catch-all ────────────────────────────────────────────────
 app.use('*', (req, res) =>

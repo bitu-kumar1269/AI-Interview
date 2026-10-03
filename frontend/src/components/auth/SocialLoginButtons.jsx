@@ -10,6 +10,9 @@ import { getApiBaseUrl } from '@/utils/apiUrl';
 const API_BASE = getApiBaseUrl();
 
 export default function SocialLoginButtons() {
+  const returnTo = typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : '';
+  const googleAuthUrl = `${API_BASE}/auth/google${returnTo ? `?returnTo=${returnTo}` : ''}`;
+
   return (
     <div>
       <div className="flex items-center gap-3 my-5">
@@ -19,7 +22,7 @@ export default function SocialLoginButtons() {
       </div>
 
       <a
-        href={`${API_BASE}/auth/google`}
+        href={googleAuthUrl}
         className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl bg-white dark:bg-[#080d1a]/85 border border-slate-300 dark:border-slate-700/70 text-slate-700 dark:text-slate-200 text-sm font-medium transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:border-slate-400 dark:hover:border-slate-500 active:scale-[0.98] shadow-sm dark:shadow-none"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24">
