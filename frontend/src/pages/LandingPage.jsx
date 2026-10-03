@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BrainCircuit, Sparkles, FileText, BarChart3, ArrowRight,
-  Briefcase, Mic, Radio, Volume2, Cpu, Check, X,
+  Briefcase, Mic, Radio, Volume2, Cpu, Check, X, Menu,
   HelpCircle, ChevronDown, Award, Zap, Shield, Target,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
@@ -111,21 +111,22 @@ const FAQS = [
 export default function LandingPage() {
   const { isAuthenticated } = useAuthStore();
   const [openFaq, setOpenFaq] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-surface overflow-x-hidden">
       {/* ── Navbar ──────────────────────────────────────────────── */}
-      <nav className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-surface-border">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <nav className="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-md border-b border-surface-border">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-xl overflow-hidden shadow-brand flex items-center justify-center border border-brand-400/30 group-hover:scale-105 transition-transform">
+            <div className="w-8 h-8 rounded-xl overflow-hidden shadow-brand flex items-center justify-center border border-brand-400/30 group-hover:scale-105 transition-transform flex-shrink-0">
               <img src="/AI-interview-svg-icon.png" alt="InterviewAI" className="w-full h-full object-cover" />
             </div>
             <span className="font-display font-bold text-lg gradient-text">InterviewAI</span>
           </Link>
 
           {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6 lg:gap-8">
             <a href="#skills-section" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">
               Skills
             </a>
@@ -147,26 +148,125 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Desktop Right Actions */}
+          <div className="hidden sm:flex items-center gap-3">
             {isAuthenticated ? (
-              <Link to="/dashboard" className="btn-primary">Go to Dashboard</Link>
+              <Link to="/dashboard" className="btn-primary text-xs sm:text-sm px-4 py-2 sm:px-5 sm:py-2.5">Go to Dashboard</Link>
             ) : (
               <>
-                <Link to="/login" className="btn-ghost">Sign In</Link>
-                <Link to="/register" className="btn-primary">Get Started Free</Link>
+                <Link to="/login" className="btn-ghost text-xs sm:text-sm">Sign In</Link>
+                <Link to="/register" className="btn-primary text-xs sm:text-sm px-4 py-2 sm:px-5 sm:py-2.5">Get Started</Link>
               </>
             )}
             <ThemeToggle />
           </div>
+
+          {/* Mobile Right Controls: Theme + Hamburger */}
+          <div className="flex sm:hidden items-center gap-2">
+            <ThemeToggle />
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 border border-surface-border transition-colors"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Dropdown Drawer */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+              className="md:hidden border-b border-surface-border bg-surface-card/95 backdrop-blur-xl px-5 pt-3 pb-6 space-y-4"
+            >
+              <div className="flex flex-col space-y-2">
+                <a
+                  href="#skills-section"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="py-2 text-sm font-medium text-slate-300 hover:text-brand-400 transition-colors"
+                >
+                  Skills
+                </a>
+                <a
+                  href="#features-section"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="py-2 text-sm font-medium text-slate-300 hover:text-brand-400 transition-colors"
+                >
+                  Features
+                </a>
+                <a
+                  href="#reviews-section"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="py-2 text-sm font-medium text-slate-300 hover:text-brand-400 transition-colors"
+                >
+                  Reviews
+                </a>
+                <a
+                  href="#faq-section"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="py-2 text-sm font-medium text-slate-300 hover:text-brand-400 transition-colors"
+                >
+                  FAQ
+                </a>
+                <Link
+                  to="/jobs"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="py-2 text-sm font-medium text-slate-300 hover:text-brand-400 transition-colors flex items-center justify-between"
+                >
+                  <span className="flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-brand-400" />
+                    Jobs Portal
+                  </span>
+                  <span className="text-[10px] bg-brand-600/20 text-brand-400 px-2 py-0.5 rounded font-bold">
+                    SOON
+                  </span>
+                </Link>
+              </div>
+
+              <div className="pt-3 border-t border-surface-border flex flex-col gap-2.5">
+                {isAuthenticated ? (
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="btn-primary w-full text-center py-2.5"
+                  >
+                    Go to Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="btn-secondary w-full text-center py-2.5"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/register"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="btn-primary w-full text-center py-2.5"
+                    >
+                      Get Started Free
+                    </Link>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
-      <section className="relative pt-28 pb-16 px-6 overflow-hidden">
+      <section className="relative pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 overflow-hidden">
         {/* Glowing ambient light orbs */}
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[700px] h-[450px] bg-brand-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-36 right-1/4 w-80 h-80 bg-accent-600/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-64 left-1/4 w-72 h-72 bg-brand-400/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 w-[90vw] max-w-[700px] h-[300px] sm:h-[450px] bg-brand-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-36 right-1/4 w-60 sm:w-80 h-60 sm:h-80 bg-accent-600/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-64 left-1/4 w-52 sm:w-72 h-52 sm:h-72 bg-brand-400/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-6xl mx-auto text-center relative z-10">
           <motion.div
@@ -174,34 +274,34 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
           >
-            <span className="badge-brand badge mb-6 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-brand-500/20 bg-brand-500/10 backdrop-blur-md shadow-sm">
-              <img src="/AI-interview-svg-icon.png" alt="Icon" className="w-4 h-4 rounded-sm object-cover" />
-              <span>Interactive 3D Simulation • Real-Time Voice Intelligence</span>
+            <span className="badge-brand badge mb-4 sm:mb-6 inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full border border-brand-500/20 bg-brand-500/10 backdrop-blur-md shadow-sm text-xs">
+              <img src="/AI-interview-svg-icon.png" alt="Icon" className="w-4 h-4 rounded-sm object-cover flex-shrink-0" />
+              <span className="truncate">Interactive 3D Simulation • Real-Time Voice Intelligence</span>
             </span>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display font-bold text-white leading-tight mb-6">
+            <h1 className="text-3xl xs:text-4xl sm:text-6xl lg:text-7xl font-display font-bold text-white leading-[1.15] mb-4 sm:mb-6">
               Practice Today,<br />
               <span className="gradient-text">Get Hired Tomorrow</span>
             </h1>
 
-            <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-8 leading-relaxed">
+            <p className="text-base sm:text-xl text-slate-400 max-w-2xl mx-auto mb-6 sm:mb-8 leading-relaxed px-2">
               Upload your resume, paste a job description, and practice with our {' '}
               <strong className="text-white">3D AI Voice Interviewer</strong> featuring speech synthesis, live mic recognition, and real-time ATS feedback.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-              <Link to="/register" className="btn-primary text-base px-8 py-4 shadow-lg shadow-brand-500/25">
-                Start Practicing Free <ArrowRight className="w-5 h-5" />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3.5 mb-6 max-w-md sm:max-w-none mx-auto">
+              <Link to="/register" className="btn-primary text-sm sm:text-base px-6 sm:px-8 py-3.5 sm:py-4 shadow-lg shadow-brand-500/25 flex items-center justify-center">
+                Start Practicing Free <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1" />
               </Link>
               <a
                 href="#interactive-demo"
-                className="btn-secondary text-base px-8 py-4 flex items-center gap-2"
+                className="btn-secondary text-sm sm:text-base px-6 sm:px-8 py-3.5 sm:py-4 flex items-center justify-center gap-2"
               >
                 <Radio className="w-4 h-4 text-brand-400 animate-pulse" /> Try Voice Assistant Demo
               </a>
             </div>
 
-            <p className="text-slate-500 text-xs mb-10">
+            <p className="text-slate-500 text-xs mb-8 sm:mb-10">
               No credit card required • WebGL 3D Interactive • Works on all modern browsers
             </p>
 
@@ -261,26 +361,26 @@ export default function LandingPage() {
       </section>
 
       {/* ── Why Us / Comparison Matrix ────────────────────────────── */}
-      <section className="py-20 px-6">
+      <section className="py-16 sm:py-20 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-14">
+          <div className="text-center mb-10 sm:mb-14">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-500/10 border border-accent-500/20 text-accent-400 text-xs font-semibold uppercase tracking-wider mb-4">
               <Shield className="w-3.5 h-3.5" />
               The Smart Way to Practice
             </div>
-            <h2 className="text-3xl sm:text-4xl font-display font-bold text-white mb-4">
+            <h2 className="text-2xl sm:text-4xl font-display font-bold text-white mb-4">
               Why Choose <span className="gradient-text">InterviewAI</span>?
             </h2>
-            <p className="text-slate-400 max-w-lg mx-auto text-sm sm:text-base">
+            <p className="text-slate-400 max-w-lg mx-auto text-xs sm:text-base px-2">
               Compare how our interactive 3D platform outperforms expensive human coaches and basic text chatbots.
             </p>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-surface-border bg-surface-card shadow-card">
-            <table className="w-full text-left border-collapse text-sm">
+          <div className="overflow-x-auto rounded-2xl border border-surface-border bg-surface-card shadow-card -mx-2 sm:mx-0">
+            <table className="w-full min-w-[540px] text-left border-collapse text-xs sm:text-sm">
               <thead>
                 <tr className="border-b border-surface-border bg-surface-card-muted">
-                  <th className="py-4 px-6 text-slate-300 font-semibold">Key Capabilities</th>
+                  <th className="py-3 sm:py-4 px-4 sm:px-6 text-slate-300 font-semibold">Key Capabilities</th>
                   <th className="py-4 px-6 text-teal-400 font-bold bg-brand-500/10 text-center">
                     InterviewAI (3D Voice)
                   </th>
@@ -447,40 +547,40 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA ──────────────────────────────────────────────────── */}
-      <section className="py-24 px-6 text-center relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-brand-500/15 rounded-full blur-3xl pointer-events-none" />
+      <section className="py-16 sm:py-24 px-4 sm:px-6 text-center relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[600px] h-[250px] sm:h-[300px] bg-brand-500/15 rounded-full blur-3xl pointer-events-none" />
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           className="max-w-2xl mx-auto relative z-10"
         >
-          <div className="w-16 h-16 rounded-2xl p-1 bg-gradient-to-br from-brand-500/20 via-accent-600/30 to-teal-500/20 border border-brand-400/30 flex items-center justify-center mx-auto mb-6 shadow-brand shadow-lg overflow-hidden">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl p-1 bg-gradient-to-br from-brand-500/20 via-accent-600/30 to-teal-500/20 border border-brand-400/30 flex items-center justify-center mx-auto mb-6 shadow-brand shadow-lg overflow-hidden">
             <img src="/AI-interview-svg-icon.png" alt="InterviewAI" className="w-full h-full object-cover rounded-xl" />
           </div>
-          <h2 className="text-4xl sm:text-5xl font-display font-bold text-white mb-4">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-display font-bold text-white mb-3 sm:mb-4 px-2 leading-tight">
             Ready to nail your next interview?
           </h2>
-          <p className="text-slate-400 text-base sm:text-lg mb-8">
+          <p className="text-slate-400 text-sm sm:text-lg mb-6 sm:mb-8 px-2">
             Join 50,000+ candidates who transformed their interview performance and landed top software engineering offers.
           </p>
-          <Link to="/register" className="btn-primary text-base px-10 py-4 inline-flex shadow-xl shadow-brand-500/30">
-            Get Started — It&apos;s Free <ArrowRight className="w-5 h-5" />
+          <Link to="/register" className="btn-primary text-sm sm:text-base px-6 sm:px-10 py-3.5 sm:py-4 inline-flex shadow-xl shadow-brand-500/30">
+            Get Started — It&apos;s Free <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1" />
           </Link>
         </motion.div>
       </section>
 
       {/* ── Footer ───────────────────────────────────────────────── */}
-      <footer className="border-t border-surface-border py-12 px-6 bg-surface-card/20">
+      <footer className="border-t border-surface-border py-10 sm:py-12 px-4 sm:px-6 bg-surface-card/20">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 text-center md:text-left">
             <Link to="/" className="flex items-center gap-2.5 group">
               <div className="w-8 h-8 rounded-xl overflow-hidden shadow-brand flex items-center justify-center border border-brand-400/30 group-hover:scale-105 transition-transform">
                 <img src="/AI-interview-svg-icon.png" alt="InterviewAI" className="w-full h-full object-cover" />
               </div>
               <span className="font-display font-bold text-lg text-white">InterviewAI</span>
             </Link>
-            <div className="flex items-center gap-6 text-sm text-slate-400">
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-slate-400">
               <a href="#skills-section" className="hover:text-white transition-colors">Skills</a>
               <a href="#features-section" className="hover:text-white transition-colors">Features</a>
               <a href="#reviews-section" className="hover:text-white transition-colors">Reviews</a>
@@ -488,7 +588,7 @@ export default function LandingPage() {
               <Link to="/jobs" className="hover:text-white transition-colors">Jobs</Link>
             </div>
           </div>
-          <div className="border-t border-surface-border/60 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+          <div className="border-t border-surface-border/60 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 text-center sm:text-left">
             <p>© 2026 InterviewAI. All rights reserved. Powered by Llama-3 & Groq.</p>
             <p>Built for engineers, students, and career switchers worldwide.</p>
           </div>

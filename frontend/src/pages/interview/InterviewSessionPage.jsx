@@ -260,17 +260,17 @@ export default function InterviewSessionPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="card p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div className="card p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h2 className="font-display font-bold text-white">{interview.jobTitle}</h2>
-          <p className="text-slate-400 text-sm capitalize">{interview.experienceLevel} level • {totalQuestions} questions</p>
+          <h2 className="font-display font-bold text-white text-base sm:text-lg">{interview.jobTitle}</h2>
+          <p className="text-slate-400 text-xs sm:text-sm capitalize">{interview.experienceLevel} level • {totalQuestions} questions</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-sm bg-surface px-3 py-1.5 rounded-lg border border-surface-border">
-            <Clock className="w-4 h-4 text-brand-400" />
+        <div className="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm bg-surface px-2.5 sm:px-3 py-1.5 rounded-lg border border-surface-border">
+            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-400" />
             <span className="text-white font-mono">{formatTime(elapsed)}</span>
           </div>
-          <span className="text-sm text-slate-400">{currentIdx + 1} / {totalQuestions}</span>
+          <span className="text-xs sm:text-sm text-slate-400 font-mono">{currentIdx + 1} / {totalQuestions}</span>
         </div>
       </div>
 
@@ -287,7 +287,7 @@ export default function InterviewSessionPage() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -15 }}
           transition={{ duration: 0.25 }}
-          className="card p-7 space-y-5"
+          className="card p-4 sm:p-7 space-y-4 sm:space-y-5"
         >
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-brand-400 font-bold text-sm">Q{currentIdx + 1}</span>
@@ -302,8 +302,8 @@ export default function InterviewSessionPage() {
             )}
           </div>
 
-          <div className="flex items-start justify-between gap-4">
-            <p className="text-white text-lg leading-relaxed font-medium">
+          <div className="flex items-start justify-between gap-3 sm:gap-4">
+            <p className="text-white text-base sm:text-lg leading-relaxed font-medium">
               {currentQuestion?.questionText}
             </p>
             <button
@@ -316,7 +316,7 @@ export default function InterviewSessionPage() {
               }`}
               title="Read Question Aloud"
             >
-              {isSpeaking ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+              {isSpeaking ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" /> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />}
             </button>
           </div>
 
@@ -335,7 +335,7 @@ export default function InterviewSessionPage() {
               </button>
             </div>
             <textarea
-              className={`form-textarea h-44 transition-colors ${isListening ? 'border-brand-500 ring-1 ring-brand-500/50 bg-brand-500/5' : ''}`}
+              className={`form-textarea h-36 sm:h-44 transition-colors ${isListening ? 'border-brand-500 ring-1 ring-brand-500/50 bg-brand-500/5' : ''}`}
               placeholder="Type your answer here, or click 'Voice Input' to speak. Be concise yet thorough. For behavioral questions, use the STAR method..."
               value={answerText}
               onChange={(e) => setAnswerText(e.target.value)}
@@ -358,7 +358,7 @@ export default function InterviewSessionPage() {
               type="button" 
               onClick={handleLiveAIFeedback}
               disabled={isReceivingFeedback || !answerText.trim()}
-              className="btn-secondary w-full py-2.5 text-sm gap-2"
+              className="btn-secondary w-full py-2.5 text-xs sm:text-sm gap-2"
             >
               {isReceivingFeedback ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4 text-brand-400" />}
               {isReceivingFeedback ? 'AI is thinking...' : 'Get Live AI Follow-up (Socket.io streamed)'}
@@ -368,7 +368,7 @@ export default function InterviewSessionPage() {
               <motion.div 
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                className="mt-3 p-4 bg-surface rounded-lg border border-brand-500/30 font-mono text-sm text-brand-100"
+                className="mt-3 p-4 bg-surface rounded-lg border border-brand-500/30 font-mono text-xs sm:text-sm text-brand-100"
               >
                 <div className="flex items-center gap-2 mb-2 pb-2 border-b border-brand-500/20">
                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -383,26 +383,26 @@ export default function InterviewSessionPage() {
       </AnimatePresence>
 
       {/* Actions */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
         <button onClick={handlePrev} disabled={currentIdx === 0 || submitting}
-          className="btn-secondary disabled:opacity-30">
+          className="btn-secondary disabled:opacity-30 justify-center">
           <ChevronLeft className="w-4 h-4" /> Previous
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-2">
           <button onClick={() => handleNext(true)} disabled={submitting}
-            className="btn-ghost text-slate-400">
+            className="btn-ghost text-slate-400 text-xs sm:text-sm">
             <SkipForward className="w-4 h-4" /> Skip
           </button>
 
           {currentIdx < totalQuestions - 1 ? (
             <button onClick={() => handleNext(false)} disabled={submitting || !answerText.trim()}
-              className="btn-primary disabled:opacity-50">
+              className="btn-primary disabled:opacity-50 justify-center text-xs sm:text-sm">
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="w-4 h-4" /> Save & Next</>}
             </button>
           ) : (
             <button onClick={handleComplete} disabled={completing}
-              className="btn-primary bg-emerald-600 hover:bg-emerald-500">
+              className="btn-primary bg-emerald-600 hover:bg-emerald-500 justify-center text-xs sm:text-sm">
               {completing
                 ? <><Loader2 className="w-4 h-4 animate-spin" /> Evaluating...</>
                 : <><CheckCircle className="w-4 h-4" /> Finish & Get Results</>}

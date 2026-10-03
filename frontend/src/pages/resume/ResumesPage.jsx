@@ -320,26 +320,26 @@ export default function ResumesPage() {
       {/* Dropzone */}
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all duration-200
+        className={`border-2 border-dashed rounded-2xl p-6 sm:p-10 text-center cursor-pointer transition-all duration-200
           ${isDragActive ? 'border-brand-500 bg-brand-600/10' : 'border-surface-border hover:border-brand-500/60 hover:bg-surface-hover'}
           ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}
       >
         <input {...getInputProps()} />
         <div className="flex flex-col items-center gap-3">
           {uploading ? (
-            <Loader2 className="w-10 h-10 text-brand-400 animate-spin" />
+            <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 text-brand-400 animate-spin" />
           ) : (
-            <div className={`p-4 rounded-2xl ${isDragActive ? 'bg-brand-600/30' : 'bg-surface-border/50'} transition-colors`}>
-              <Upload className={`w-8 h-8 ${isDragActive ? 'text-brand-400' : 'text-slate-500'}`} />
+            <div className={`p-3.5 sm:p-4 rounded-2xl ${isDragActive ? 'bg-brand-600/30' : 'bg-surface-border/50'} transition-colors`}>
+              <Upload className={`w-6 h-6 sm:w-8 sm:h-8 ${isDragActive ? 'text-brand-400' : 'text-slate-500'}`} />
             </div>
           )}
           <div>
-            <p className="font-semibold text-white">
+            <p className="font-semibold text-white text-sm sm:text-base">
               {uploading ? 'Uploading & analysing…' : isDragActive ? 'Drop your resume here' : 'Drag & drop your resume'}
             </p>
-            <p className="text-slate-500 text-sm mt-1">or <span className="text-brand-400">click to browse</span></p>
+            <p className="text-slate-500 text-xs sm:text-sm mt-1">or <span className="text-brand-400">click to browse</span></p>
           </div>
-          <p className="text-xs text-slate-600">PDF, DOC, DOCX • Max 5MB</p>
+          <p className="text-[11px] sm:text-xs text-slate-600">PDF, DOC, DOCX • Max 5MB</p>
         </div>
       </div>
 
@@ -373,37 +373,37 @@ export default function ResumesPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="card p-5"
+                  className="card p-4 sm:p-5"
                 >
                   {/* Header row */}
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-start gap-4 min-w-0">
-                      <div className={`p-2.5 rounded-xl flex-shrink-0 ${resume.isDefault ? 'bg-amber-600/20' : 'bg-brand-600/20'}`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                    <div className="flex items-start gap-3 sm:gap-4 min-w-0">
+                      <div className={`p-2 sm:p-2.5 rounded-xl flex-shrink-0 ${resume.isDefault ? 'bg-amber-600/20' : 'bg-brand-600/20'}`}>
                         <FileText className={`w-5 h-5 ${resume.isDefault ? 'text-amber-400' : 'text-brand-400'}`} />
                       </div>
                       <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2 mb-1">
-                          <p className="font-medium text-white text-sm truncate">{resume.originalName}</p>
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
+                          <p className="font-medium text-white text-xs sm:text-sm truncate max-w-[200px] xs:max-w-[280px] sm:max-w-xs">{resume.originalName}</p>
                           {resume.isDefault && (
-                            <span className="badge bg-amber-600/20 text-amber-300 border-amber-500/30">
-                              <Star className="w-3 h-3" /> Default
+                            <span className="badge bg-amber-600/20 text-amber-300 border-amber-500/30 text-[10px] sm:text-xs">
+                              <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> Default
                             </span>
                           )}
                           {resume.isParsed && (
-                            <span className="badge bg-emerald-600/20 text-emerald-300 border-emerald-500/30 text-xs">
+                            <span className="badge bg-emerald-600/20 text-emerald-300 border-emerald-500/30 text-[10px] sm:text-xs">
                               ✦ AI Parsed
                             </span>
                           )}
                         </div>
-                        <div className="flex flex-wrap items-center gap-3 text-xs">
-                          <span className={`badge ${ps.cls} flex items-center gap-1`}>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
+                          <span className={`badge ${ps.cls} flex items-center gap-1 text-[10px] sm:text-xs`}>
                             <PsIcon className={`w-3 h-3 ${resume.parseStatus === 'pending' ? 'animate-spin' : ''}`} />
                             {ps.label}
                           </span>
                           {resume.fileSize && (
-                            <span className="text-slate-500">{(resume.fileSize / 1024).toFixed(0)} KB</span>
+                            <span className="text-slate-500 text-[11px] sm:text-xs">{(resume.fileSize / 1024).toFixed(0)} KB</span>
                           )}
-                          <span className="text-slate-500">
+                          <span className="text-slate-500 text-[11px] sm:text-xs">
                             {new Date(resume.createdAt).toLocaleDateString()}
                           </span>
                         </div>
@@ -411,7 +411,7 @@ export default function ResumesPage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-1 flex-shrink-0">
+                    <div className="flex items-center gap-1 self-end sm:self-center flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-surface-border/50 w-full sm:w-auto justify-end">
                       {resume.parseStatus === 'parsed' && (
                         <button
                           onClick={() => setExpanded(isOpen ? null : resume._id)}

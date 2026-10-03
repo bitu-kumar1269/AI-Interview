@@ -162,11 +162,11 @@ export default function ProfilePage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-fade-in pb-12">
       {/* ── Profile Header & Avatar ─────────────────────────────── */}
-      <div className="card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="flex items-center gap-5">
+      <div className="card p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 relative overflow-hidden">
+        <div className="flex flex-col xs:flex-row items-center xs:items-start sm:items-center gap-4 sm:gap-5 text-center xs:text-left w-full sm:w-auto">
           {/* Avatar Container */}
           <div className="relative group flex-shrink-0">
-            <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gradient-brand flex items-center justify-center text-white font-display font-bold text-3xl shadow-lg shadow-brand-500/10 border-2 border-brand-500/30">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-brand flex items-center justify-center text-white font-display font-bold text-2xl sm:text-3xl shadow-lg shadow-brand-500/10 border-2 border-brand-500/30">
               {user?.avatar ? (
                 <img
                   src={user.avatar}
@@ -206,13 +206,13 @@ export default function ProfilePage() {
             />
           </div>
 
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-display font-bold text-white">{user?.name}</h2>
-              <span className="badge badge-brand capitalize">{user?.role || 'Candidate'}</span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center justify-center xs:justify-start gap-2">
+              <h2 className="text-lg sm:text-xl font-display font-bold text-white truncate max-w-[220px] sm:max-w-none">{user?.name}</h2>
+              <span className="badge badge-brand capitalize text-[10px] sm:text-xs">{user?.role || 'Candidate'}</span>
             </div>
-            <p className="text-slate-400 text-sm mt-0.5">{user?.email}</p>
-            <div className="flex items-center gap-3 mt-2.5 text-xs text-slate-500">
+            <p className="text-slate-400 text-xs sm:text-sm mt-0.5 truncate max-w-[240px] sm:max-w-none">{user?.email}</p>
+            <div className="flex items-center justify-center xs:justify-start gap-3 mt-2 text-xs text-slate-500">
               <span>{user?.totalSessions ?? 0} sessions completed</span>
               <span>•</span>
               <span className="text-emerald-400 font-medium">Active</span>
@@ -221,7 +221,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Avatar Actions */}
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end pt-3 sm:pt-0 border-t sm:border-t-0 border-surface-border/50">
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}

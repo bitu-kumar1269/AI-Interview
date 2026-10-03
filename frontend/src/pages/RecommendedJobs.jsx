@@ -140,19 +140,19 @@ export default function RecommendedJobs() {
 
       {/* Recommended Jobs Grid */}
       {hasResume && jobs.length > 0 && (
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {jobs.map((job, idx) => (
             <motion.div
               key={job.adzunaId || job._id}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className="card relative flex flex-col justify-between overflow-hidden border border-surface-border p-6 shadow-sm hover:shadow-xl hover:border-brand-500/30 transition-all duration-300"
+              className="card relative flex flex-col justify-between overflow-hidden border border-surface-border p-4 sm:p-6 shadow-sm hover:shadow-xl hover:border-brand-500/30 transition-all duration-300"
             >
               {/* Top Row: Title / Match score */}
               <div className="flex justify-between items-start gap-4 mb-4">
-                <div className="pr-12">
-                  <h3 className="text-lg font-bold text-white line-clamp-1 hover:text-brand-400 transition-colors">
+                <div className="pr-4 sm:pr-12">
+                  <h3 className="text-base sm:text-lg font-bold text-white line-clamp-1 hover:text-brand-400 transition-colors">
                     {job.title}
                   </h3>
                   <div className="flex items-center gap-1.5 text-slate-400 text-xs font-medium mt-1">
@@ -162,7 +162,7 @@ export default function RecommendedJobs() {
                 </div>
 
                 {/* Score Gauge Badge */}
-                <div className={`flex items-center gap-1 px-2.5 py-1 text-xs font-black rounded-full ${
+                <div className={`flex items-center gap-1 px-2.5 py-1 text-xs font-black rounded-full flex-shrink-0 ${
                   job.matchScore >= 80 
                     ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/20' 
                     : 'bg-amber-950/40 text-amber-400 border border-amber-500/20'
@@ -193,12 +193,12 @@ export default function RecommendedJobs() {
               </p>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-3 pt-4 border-t border-surface-border mt-auto">
+              <div className="flex flex-col xs:flex-row items-center gap-2.5 sm:gap-3 pt-4 border-t border-surface-border mt-auto">
                 <a
                   href={job.redirectUrl || job.applyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-4 bg-surface-border hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition-all duration-300"
+                  className="w-full xs:flex-1 flex items-center justify-center gap-1.5 py-2 px-4 bg-surface-border hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition-all duration-300"
                 >
                   View Job
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -207,7 +207,7 @@ export default function RecommendedJobs() {
                 <button
                   onClick={() => handleStartInterview(job)}
                   disabled={startingInterviewId !== null}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-4 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all duration-300"
+                  className="w-full xs:flex-1 flex items-center justify-center gap-1.5 py-2 px-4 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all duration-300"
                 >
                   {startingInterviewId === (job.adzunaId || job._id) ? (
                     <>

@@ -95,12 +95,12 @@ export default function NewInterviewPage() {
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
       {/* Step indicator */}
-      <div className="flex items-center gap-2 mb-8">
+      <div className="flex items-center gap-1.5 sm:gap-2 mb-6 sm:mb-8">
         {STEPS.map((label, i) => (
-          <div key={label} className="flex items-center gap-2 flex-1">
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold transition-all duration-300
+          <div key={label} className="flex items-center gap-1.5 sm:gap-2 flex-1">
+            <div className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs font-bold transition-all duration-300 flex-shrink-0
               ${i < step ? 'bg-emerald-500 text-white' : i === step ? 'bg-brand-500 text-white shadow-glow' : 'bg-surface-border text-slate-500'}`}>
-              {i < step ? <Check className="w-4 h-4" /> : i + 1}
+              {i < step ? <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : i + 1}
             </div>
             <span className={`text-xs font-medium hidden sm:block ${i === step ? 'text-white' : 'text-slate-500'}`}>{label}</span>
             {i < STEPS.length - 1 && (
@@ -116,11 +116,11 @@ export default function NewInterviewPage() {
           {step === 0 && (
             <motion.div key="step0"
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-              className="card p-8 space-y-5"
+              className="card p-5 sm:p-8 space-y-4 sm:space-y-5"
             >
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-brand-600/20 rounded-xl"><Briefcase className="w-5 h-5 text-brand-400" /></div>
-                <h3 className="text-xl font-display font-bold text-white">Job Details</h3>
+                <h3 className="text-lg sm:text-xl font-display font-bold text-white">Job Details</h3>
               </div>
 
               <div>
@@ -158,16 +158,16 @@ export default function NewInterviewPage() {
           {step === 1 && (
             <motion.div key="step1"
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-              className="card p-8 space-y-6"
+              className="card p-5 sm:p-8 space-y-5 sm:space-y-6"
             >
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-brand-500/20 rounded-xl"><Sliders className="w-5 h-5 text-brand-400" /></div>
-                <h3 className="text-xl font-display font-bold text-white">Preferences</h3>
+                <h3 className="text-lg sm:text-xl font-display font-bold text-white">Preferences</h3>
               </div>
 
               <div>
                 <label className="form-label">Experience Level</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
                   {EXPERIENCE_LEVELS.map(({ value, label, sub }) => (
                     <button key={value} type="button"
                       onClick={() => setExperienceLevel(value)}
@@ -190,7 +190,7 @@ export default function NewInterviewPage() {
                   {QUESTION_TYPES.map(({ value, label }) => (
                     <button key={value} type="button"
                       onClick={() => toggleType(value)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                      className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium border transition-all ${
                         selectedTypes.includes(value)
                           ? 'bg-brand-600/30 border-brand-500 text-brand-300'
                           : 'border-surface-border text-slate-400 hover:border-slate-500'
@@ -216,7 +216,7 @@ export default function NewInterviewPage() {
           {step === 2 && (
             <motion.div key="step2"
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-              className="card p-8 space-y-4"
+              className="card p-5 sm:p-8 space-y-4"
             >
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-emerald-600/20 rounded-xl"><FileText className="w-5 h-5 text-emerald-400" /></div>
@@ -266,11 +266,11 @@ export default function NewInterviewPage() {
           {step === 3 && (
             <motion.div key="step3"
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-              className="card p-8 space-y-5"
+              className="card p-5 sm:p-8 space-y-4 sm:space-y-5"
             >
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-amber-600/20 rounded-xl"><Sparkles className="w-5 h-5 text-amber-400" /></div>
-                <h3 className="text-xl font-display font-bold text-white">Review & Generate</h3>
+                <h3 className="text-lg sm:text-xl font-display font-bold text-white">Review & Generate</h3>
               </div>
 
               {[

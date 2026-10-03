@@ -402,10 +402,10 @@ export default function AiVoiceAssistantHUD({ onVoiceStateChange }) {
         </div>
 
         {/* Action Buttons: Mic Speak & Analyze */}
-        <div className="flex items-center justify-between gap-3 pt-1">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-1">
           <button
             onClick={toggleListening}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-md ${
+            className={`px-4 py-2.5 sm:py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-md ${
               isListening
                 ? 'bg-rose-600 text-white animate-pulse ring-2 ring-rose-400'
                 : 'bg-emerald-600/15 dark:bg-emerald-600/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600/25 border border-emerald-500/30'
@@ -418,7 +418,7 @@ export default function AiVoiceAssistantHUD({ onVoiceStateChange }) {
           <button
             onClick={() => analyzeAnswer(transcript || currentQ.sampleAnswer)}
             disabled={analyzing}
-            className="btn-primary text-xs px-4 py-2 flex items-center gap-1.5"
+            className="btn-primary text-xs px-4 py-2.5 sm:py-2 flex items-center justify-center gap-1.5"
           >
             {analyzing ? (
               <>

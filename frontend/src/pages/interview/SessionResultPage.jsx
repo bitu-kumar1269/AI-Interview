@@ -71,33 +71,33 @@ export default function SessionResultPage() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="card p-8 text-center bg-gradient-card"
+        className="card p-5 sm:p-8 text-center bg-gradient-card"
       >
-        <div className="inline-flex items-center justify-center w-24 h-24 rounded-full border-4 mb-4"
+        <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 mb-4"
           style={{ borderColor: scoreColor, boxShadow: `0 0 30px ${scoreColor}40` }}>
-          <span className="text-3xl font-display font-bold" style={{ color: scoreColor }}>{score}%</span>
+          <span className="text-2xl sm:text-3xl font-display font-bold" style={{ color: scoreColor }}>{score}%</span>
         </div>
-        <h2 className="text-2xl font-display font-bold text-white mb-1">{scoreLabel}!</h2>
-        <p className="text-slate-400 mb-4">{session.interviewId?.jobTitle} • {session.answers.length} questions answered</p>
+        <h2 className="text-xl sm:text-2xl font-display font-bold text-white mb-1">{scoreLabel}!</h2>
+        <p className="text-slate-400 text-xs sm:text-sm mb-4">{session.interviewId?.jobTitle} • {session.answers.length} questions answered</p>
 
         {session.overallFeedback && (
-          <p className="text-slate-300 text-sm bg-surface/60 rounded-xl p-4 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-slate-300 text-xs sm:text-sm bg-surface/60 rounded-xl p-3 sm:p-4 max-w-2xl mx-auto leading-relaxed">
             {session.overallFeedback}
           </p>
         )}
 
-        <div className="flex items-center justify-center gap-3 mt-6">
-          <Link to="/interviews/new" className="btn-primary">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6 w-full max-w-xs sm:max-w-none mx-auto">
+          <Link to="/interviews/new" className="btn-primary w-full sm:w-auto justify-center">
             <RotateCcw className="w-4 h-4" /> Practice Again
           </Link>
-          <Link to="/dashboard" className="btn-secondary">Dashboard</Link>
+          <Link to="/dashboard" className="btn-secondary w-full sm:w-auto justify-center">Dashboard</Link>
         </div>
       </motion.div>
 
       {/* Strengths & Improvements */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div className="card p-6">
-          <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+        <div className="card p-4 sm:p-6">
+          <h3 className="font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2 text-sm sm:text-base">
             <ThumbsUp className="w-5 h-5 text-emerald-400" /> Strengths
           </h3>
           {session.strengths?.length ? (

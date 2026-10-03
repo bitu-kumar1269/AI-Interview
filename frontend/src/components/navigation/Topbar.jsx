@@ -19,24 +19,24 @@ export default function Topbar({ onMenuClick }) {
   const title = PAGE_TITLES[pathname] || 'AI Interview';
 
   return (
-    <header className="h-14 border-b border-surface-border flex items-center justify-between px-5 flex-shrink-0 transition-colors duration-200"
+    <header className="h-14 border-b border-surface-border flex items-center justify-between px-3.5 sm:px-5 flex-shrink-0 transition-colors duration-200"
       style={{ background: 'var(--card-bg)', backdropFilter: 'blur(16px)' }}
     >
       {/* Left: menu + title */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <button
           onClick={onMenuClick}
-          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-900/5 dark:hover:bg-white/5 lg:hidden transition-colors"
+          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-900/5 dark:hover:bg-white/5 lg:hidden transition-colors flex-shrink-0"
         >
           <Menu className="w-5 h-5" />
         </button>
-        <Link to="/dashboard" className="flex items-center gap-2 lg:hidden" aria-label="Go to Dashboard">
+        <Link to="/dashboard" className="flex items-center gap-2 lg:hidden flex-shrink-0" aria-label="Go to Dashboard">
           <img src="/AI-interview-svg-icon.png" alt="InterviewAI" className="w-6 h-6 rounded-lg object-contain shadow-sm" />
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           {/* teal dot */}
-          <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-teal-400" />
-          <h1 className="text-sm font-display font-semibold text-slate-200">{title}</h1>
+          <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-teal-400 flex-shrink-0" />
+          <h1 className="text-xs sm:text-sm font-display font-semibold text-slate-200 truncate max-w-[120px] xs:max-w-[200px] sm:max-w-none">{title}</h1>
         </div>
       </div>
 

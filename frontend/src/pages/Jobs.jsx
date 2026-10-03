@@ -49,11 +49,11 @@ export default function JobsPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
       
       {/* Header Section */}
-      <div className="mb-10 text-center md:text-left">
+      <div className="mb-6 sm:mb-10 text-center md:text-left">
         <motion.h1 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight"
+          className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-2 sm:mb-4 tracking-tight"
         >
           Find your next <span className="gradient-text">opportunity</span>
         </motion.h1>
@@ -61,7 +61,7 @@ export default function JobsPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl"
+          className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-400 max-w-2xl px-2 sm:px-0"
         >
           Discover jobs perfectly matched to your skills, experience, and interview performance using our AI-driven deterministic ranking engine.
         </motion.p>

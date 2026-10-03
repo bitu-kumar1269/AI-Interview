@@ -110,16 +110,28 @@
 
   /* ── Resets ───────────────────────────────────────────────────── */
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  html {
+    scroll-behavior: smooth;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
 
   body {
     background-color: var(--color-bg-body);
     color: var(--color-text-body);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
+    max-width: 100%;
+    overflow-x: hidden;
     transition: background-color 0.25s ease, color 0.25s ease;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Responsive media defaults */
+  img, video {
+    max-width: 100%;
+    height: auto;
   }
 
   /* Atmospheric background glows */
@@ -263,7 +275,7 @@
     background-color: var(--input-bg);
     border: 1px solid var(--input-border);
     color: var(--input-text);
-    @apply w-full px-4 py-2.5 rounded-xl text-sm
+    @apply w-full px-4 py-2.5 rounded-xl text-base sm:text-sm
            focus:outline-none focus:ring-2
            transition-all duration-200;
   }
