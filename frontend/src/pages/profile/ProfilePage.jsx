@@ -105,6 +105,14 @@ export default function ProfilePage() {
       return;
     }
 
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(extension)) {
+      toast.error('Please choose a JPG, PNG, WebP, or GIF image.');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('avatar', file);
 
@@ -200,7 +208,7 @@ export default function ProfilePage() {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif"
               className="hidden"
               onChange={handleAvatarFileSelect}
             />
