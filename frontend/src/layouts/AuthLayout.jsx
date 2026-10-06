@@ -4,21 +4,21 @@ import { ArrowLeft, Cpu } from 'lucide-react';
 
 export default function AuthLayout() {
   return (
-    <div className="relative min-h-screen w-full overflow-y-auto bg-slate-100 dark:bg-[#070913] flex flex-col justify-center items-center lg:items-end transition-colors duration-200 py-6 px-4 sm:px-6 lg:py-12">
+    <div className="relative min-h-screen w-full overflow-y-auto bg-[#070913] flex flex-col justify-center items-center lg:items-end py-6 px-4 sm:px-6 lg:py-12">
       {/* ── Fullscreen Background Video ──────────────── */}
       <video
         autoPlay
         muted
         loop
         playsInline
-        className="fixed inset-0 w-full h-full object-cover pointer-events-none opacity-40 dark:opacity-100 transition-opacity"
+        className="fixed inset-0 w-full h-full object-cover pointer-events-none"
       >
         <source src="/Ai-interview-video.mp4" type="video/mp4" />
         <source src="/Ai-intervirw-video.mp4" type="video/mp4" />
       </video>
 
       {/* ── Responsive Gradient Overlay ── */}
-      <div className="fixed inset-0 bg-gradient-to-b from-white/60 via-slate-100/70 to-slate-200/90 dark:from-black/40 dark:via-black/20 dark:to-[#070913]/90 lg:bg-gradient-to-r lg:from-white/20 lg:via-slate-100/60 lg:to-white/95 lg:dark:from-black/10 lg:dark:via-slate-950/40 lg:dark:to-[#060813]/95 pointer-events-none transition-colors" />
+      <div className="fixed inset-0 bg-gradient-to-b from-black/40 via-black/20 to-[#070913]/90 lg:bg-gradient-to-r lg:from-black/10 lg:via-slate-950/40 lg:to-[#060813]/95 pointer-events-none" />
 
       {/* ── Ambient Cyber Glow Accents ────────────────── */}
       <div className="fixed top-1/3 -right-20 w-96 h-96 bg-cyan-500/15 rounded-full blur-[140px] pointer-events-none" />
@@ -36,12 +36,12 @@ export default function AuthLayout() {
             <span>Back to Home</span>
           </Link>
 
-          <div className="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-[#080c18]/60 border border-slate-200 dark:border-cyan-500/25 text-[11px] font-mono text-cyan-600 dark:text-cyan-300 backdrop-blur-xl shadow-sm dark:shadow-[0_0_15px_rgba(6,182,212,0.1)]">
+          <div className="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#080c18]/60 border border-cyan-500/25 text-[11px] font-mono text-cyan-300 backdrop-blur-xl shadow-[0_0_15px_rgba(6,182,212,0.1)]">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
             </span>
-            <Cpu className="w-3 h-3 text-cyan-500 dark:text-cyan-400 ml-0.5" />
+            <Cpu className="w-3 h-3 text-cyan-400 ml-0.5" />
             <span>AI NEURAL ENGINE ONLINE</span>
           </div>
         </div>
