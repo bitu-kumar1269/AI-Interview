@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Eye, EyeOff, Loader2, Bot, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
@@ -43,11 +43,9 @@ export default function RegisterPage() {
             Full Name
           </label>
           <div className="relative">
-            <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-500 dark:text-brand-400/80" />
             <input
               type="text"
-              placeholder="John Doe"
-              className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl bg-white dark:bg-[#080d1a]/85 border border-slate-300 dark:border-slate-700/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all shadow-sm dark:shadow-inner"
+              className="w-full px-4 py-2.5 sm:py-3 rounded-xl bg-white dark:bg-[#080d1a]/85 border border-slate-300 dark:border-slate-700/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all shadow-sm dark:shadow-inner"
               {...register('name', {
                 required: 'Name is required',
                 minLength: { value: 2, message: 'Name must be at least 2 characters' }
@@ -62,11 +60,9 @@ export default function RegisterPage() {
             Email Address
           </label>
           <div className="relative">
-            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-500 dark:text-brand-400/80" />
             <input
               type="email"
-              placeholder="you@example.com"
-              className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl bg-white dark:bg-[#080d1a]/85 border border-slate-300 dark:border-slate-700/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all shadow-sm dark:shadow-inner"
+              className="w-full px-4 py-2.5 sm:py-3 rounded-xl bg-white dark:bg-[#080d1a]/85 border border-slate-300 dark:border-slate-700/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all shadow-sm dark:shadow-inner"
               {...register('email', {
                 required: 'Email is required',
                 pattern: { value: /^\S+@\S+\.\S+$/, message: 'Invalid email' }
@@ -81,17 +77,15 @@ export default function RegisterPage() {
             Password
           </label>
           <div className="relative">
-            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-500 dark:text-brand-400/80" />
             <input
               type={showPassword ? 'text' : 'password'}
-              placeholder="Min 8 chars, uppercase & number"
-              className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl bg-white dark:bg-[#080d1a]/85 border border-slate-300 dark:border-slate-700/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all shadow-sm dark:shadow-inner"
+              className="w-full pl-4 pr-10 py-2.5 sm:py-3 rounded-xl bg-white dark:bg-[#080d1a]/85 border border-slate-300 dark:border-slate-700/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all shadow-sm dark:shadow-inner"
               {...register('password', {
                 required: 'Password is required',
                 minLength: { value: 8, message: 'Minimum 8 characters' },
                 pattern: {
-                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-                  message: 'Must include uppercase, lowercase, and number',
+                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])/,
+                  message: 'Must include uppercase and lowercase letters, a number, and a special character',
                 },
               })}
             />
@@ -103,6 +97,9 @@ export default function RegisterPage() {
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
+          <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">
+            Use at least 8 characters, including uppercase and lowercase letters, a number, and a special character.
+          </p>
           {errors.password && <p className="text-red-500 dark:text-red-400 text-xs mt-1 font-medium">{errors.password.message}</p>}
         </div>
 
@@ -111,11 +108,9 @@ export default function RegisterPage() {
             Confirm Password
           </label>
           <div className="relative">
-            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-500 dark:text-brand-400/80" />
             <input
               type="password"
-              placeholder="Repeat your password"
-              className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl bg-white dark:bg-[#080d1a]/85 border border-slate-300 dark:border-slate-700/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all shadow-sm dark:shadow-inner"
+              className="w-full px-4 py-2.5 sm:py-3 rounded-xl bg-white dark:bg-[#080d1a]/85 border border-slate-300 dark:border-slate-700/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all shadow-sm dark:shadow-inner"
               {...register('confirmPassword', {
                 required: 'Please confirm your password',
                 validate: (v) => v === password || 'Passwords do not match',

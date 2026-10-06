@@ -17,8 +17,8 @@ const registerValidation = [
     .isLength({ min: 2, max: 50 }).withMessage('Name must be 2-50 characters'),
   body('email').isEmail().withMessage('Please enter a valid email').normalizeEmail(),
   body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain uppercase, lowercase, and a number'),
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])/)
+    .withMessage('Password must contain uppercase and lowercase letters, a number, and a special character'),
 ];
 
 const loginValidation = [
