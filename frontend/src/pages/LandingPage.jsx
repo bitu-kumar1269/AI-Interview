@@ -584,7 +584,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-surface-border/60 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 text-center sm:text-left">
-            <p>© 2026 InterviewAI. All rights reserved. Powered by Llama-3 & Groq.</p>
+            <p>© 2026 InterviewAI. All rights reserved by Bitu kumar1269.</p>
             <p>Built for engineers, students, and career switchers worldwide.</p>
           </div>
         </div>
