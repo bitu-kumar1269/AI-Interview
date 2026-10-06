@@ -21,7 +21,7 @@ export default function AiVoiceInterviewShowcase() {
       <div className="absolute -inset-1 bg-gradient-to-r from-brand-500/20 via-accent-600/15 to-brand-500/20 rounded-3xl blur-2xl opacity-60 pointer-events-none" />
 
       {/* Main Container Card */}
-      <div className="relative rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-surface-card/90 border border-slate-200 dark:border-surface-border backdrop-blur-2xl shadow-xl dark:shadow-2xl overflow-hidden p-4 sm:p-8">
+      <div data-cursor="Open Interview" data-cursor-type="card" className="relative rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-surface-card/90 border border-slate-200 dark:border-surface-border backdrop-blur-2xl shadow-xl dark:shadow-2xl overflow-hidden p-4 sm:p-8">
         {/* Decorative Grid Lines Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 pb-4 sm:pb-6 border-b border-slate-200 dark:border-surface-border">
           <div className="flex items-center gap-3">
@@ -62,7 +62,7 @@ export default function AiVoiceInterviewShowcase() {
             </div>
 
             {/* Three.js 3D Canvas */}
-            <div className="w-full h-full min-h-[260px] xs:min-h-[320px] sm:min-h-[360px] relative z-10 flex items-center justify-center">
+            <div data-cursor="Talk to AI" data-cursor-type="ai" className="w-full h-full min-h-[260px] xs:min-h-[320px] sm:min-h-[360px] relative z-10 flex items-center justify-center">
               <AiInterview3D
                 isSpeaking={voiceState.isSpeaking}
                 isListening={voiceState.isListening}

@@ -1,0 +1,127 @@
+.semantic-cursor {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
+.semantic-cursor[data-visible='true'] {
+  opacity: 1;
+}
+
+.semantic-cursor__dot,
+.semantic-cursor__ring,
+.semantic-cursor__label {
+  position: fixed;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.semantic-cursor__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #5eead4;
+  box-shadow: 0 0 8px rgba(45, 212, 191, 0.4);
+}
+
+.semantic-cursor__ring {
+  width: 25px;
+  height: 25px;
+  border: 1px solid rgba(94, 234, 212, 0.48);
+  border-radius: 50%;
+  background: rgba(45, 212, 191, 0.035);
+  backdrop-filter: blur(1px);
+  transition:
+    width 180ms ease,
+    height 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.semantic-cursor__label {
+  max-width: 180px;
+  padding: 5px 9px;
+  border: 1px solid rgba(45, 212, 191, 0.2);
+  border-radius: 999px;
+  background: rgba(8, 18, 32, 0.84);
+  color: #d1fae5;
+  font: 500 10px/1.2 Inter, system-ui, sans-serif;
+  letter-spacing: 0.015em;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(2, 8, 23, 0.16);
+  opacity: 0;
+  scale: 0.94;
+  transition: opacity 160ms ease, scale 160ms ease;
+}
+
+.semantic-cursor[data-label=''] .semantic-cursor__label {
+  display: none;
+}
+
+.semantic-cursor[data-visible='true']:not([data-label='']) .semantic-cursor__label {
+  opacity: 1;
+  scale: 1;
+}
+
+.semantic-cursor[data-state='button'] .semantic-cursor__ring,
+.semantic-cursor[data-state='card'] .semantic-cursor__ring {
+  width: 34px;
+  height: 34px;
+  border-color: rgba(94, 234, 212, 0.75);
+  background: rgba(45, 212, 191, 0.07);
+}
+
+.semantic-cursor[data-state='ai'] .semantic-cursor__ring {
+  width: 38px;
+  height: 38px;
+  border-color: rgba(103, 232, 249, 0.74);
+  background: rgba(34, 211, 238, 0.07);
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.14);
+}
+
+.semantic-cursor[data-state='ai'] .semantic-cursor__dot {
+  background: #a5f3fc;
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+}
+
+.semantic-cursor[data-state='text'] .semantic-cursor__ring {
+  width: 2px;
+  height: 18px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.semantic-cursor[data-state='text'] .semantic-cursor__dot {
+  opacity: 0;
+}
+
+.semantic-cursor-enabled,
+.semantic-cursor-enabled * {
+  cursor: none !important;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  [data-cursor-type='card'] {
+    transition: transform 180ms ease;
+  }
+
+  [data-cursor-type='card']:hover {
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce), (hover: none), (pointer: coarse) {
+  .semantic-cursor,
+  .semantic-cursor-enabled,
+  .semantic-cursor-enabled * {
+    display: none !important;
+    cursor: auto !important;
+  }
+}

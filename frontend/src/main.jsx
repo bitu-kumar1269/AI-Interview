@@ -15,6 +15,7 @@ import { Toaster } from 'react-hot-toast';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { AppProvider, AdminAuthProvider } from '@/context';
+import SemanticCursor from '@/components/cursor/SemanticCursor';
 import App from './App';
 import './index.css';
 
@@ -35,6 +36,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <AdminAuthProvider>
           <AppProvider>
             <App />
+            <SemanticCursor />
             <Toaster
               position="top-right"
               toastOptions={{
