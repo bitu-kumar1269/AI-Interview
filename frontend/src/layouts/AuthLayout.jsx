@@ -1,7 +1,6 @@
 import { Outlet, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Cpu } from 'lucide-react';
-import { ThemeToggle } from '@/components/common';
 
 export default function AuthLayout() {
   return (
@@ -45,10 +44,6 @@ export default function AuthLayout() {
             <Cpu className="w-3 h-3 text-cyan-500 dark:text-cyan-400 ml-0.5" />
             <span>AI NEURAL ENGINE ONLINE</span>
           </div>
-        </div>
-
-        <div className="lg:fixed lg:top-6 lg:right-6">
-          <ThemeToggle />
         </div>
       </div>
 
