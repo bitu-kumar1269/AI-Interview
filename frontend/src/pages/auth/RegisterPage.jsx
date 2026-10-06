@@ -31,13 +31,7 @@ export default function RegisterPage() {
         <div className="w-11 h-11 rounded-2xl p-1 bg-gradient-to-br from-brand-500/20 to-accent-600/30 border border-brand-400/30 flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.25)] overflow-hidden">
           <img src="/AI-interview-svg-icon.png" alt="InterviewAI" className="w-full h-full object-cover rounded-xl" />
         </div>
-        <div>
-          <span className="text-xl font-display font-bold text-slate-900 dark:text-white tracking-tight">InterviewAI</span>
-          <div className="flex items-center gap-1.5 text-[11px] font-mono text-brand-500 dark:text-brand-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
-            <span>NEW CANDIDATE REGISTRATION</span>
-          </div>
-        </div>
+        <span className="text-xl font-display font-bold text-slate-900 dark:text-white tracking-tight">InterviewAI</span>
       </div>
 
       <h2 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white mb-1 tracking-tight">Create Account</h2>

@@ -53,7 +53,7 @@ export default function AuthLayout() {
           initial={{ opacity: 0, x: 20, y: 0 }}
           animate={{ opacity: 1, x: 0, y: 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="relative bg-white/95 dark:bg-[#090d19]/85 backdrop-blur-2xl border border-slate-200 dark:border-cyan-500/25 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 shadow-2xl dark:shadow-[0_0_60px_rgba(6,182,212,0.15)] overflow-hidden"
+          className="relative bg-white/95 dark:bg-[#090d19]/85 backdrop-blur-2xl border border-slate-200 dark:border-cyan-500/25 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 shadow-2xl dark:shadow-[0_0_60px_rgba(6,182,212,0.15)] hover:-translate-y-1 hover:border-cyan-400/60 hover:shadow-[0_20px_70px_rgba(6,182,212,0.2)] transition-all duration-300 overflow-hidden"
         >
           {/* Top subtle neon border highlight line */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-80" />
