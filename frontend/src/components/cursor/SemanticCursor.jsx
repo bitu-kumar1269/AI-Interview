@@ -14,7 +14,7 @@ const getCursorDetails = (element) => {
 
   if (type === 'ai') return { state: 'ai', label: label || 'AI Powered' };
   if (type === 'card') return { state: 'card', label: label || 'Open' };
-  if (element.matches('button, [role="button"]')) {
+  if (element.matches('button, [role="button"], .btn-primary, .btn-secondary')) {
     return {
       state: 'button',
       label: label || element.getAttribute('aria-label') || element.textContent.trim().replace(/\s+/g, ' ').slice(0, 24),
