@@ -274,11 +274,6 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
           >
-            <span className="badge-brand badge mb-4 sm:mb-6 inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full border border-brand-500/20 bg-brand-500/10 backdrop-blur-md shadow-sm text-xs">
-              <img src="/AI-interview-svg-icon.png" alt="Icon" className="w-4 h-4 rounded-sm object-cover flex-shrink-0" />
-              <span className="truncate">Interactive 3D Simulation • Real-Time Voice Intelligence</span>
-            </span>
-
             <h1 className="text-3xl xs:text-4xl sm:text-6xl lg:text-7xl font-display font-bold text-white leading-[1.15] mb-4 sm:mb-6">
               Practice Today,<br />
               <span className="gradient-text">Get Hired Tomorrow</span>
@@ -597,4 +592,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
