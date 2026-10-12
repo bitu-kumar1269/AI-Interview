@@ -1,0 +1,47 @@
+# Copy this file to group_vars/all.yml and fill in real values, OR
+# (recommended) encrypt it with Ansible Vault before committing anything:
+#
+#   cp group_vars/all.yml.example group_vars/all.yml
+#   # fill in real values
+#   ansible-vault encrypt group_vars/all.yml
+#
+# Then run the playbook with:
+#   ansible-playbook -i inventory.ini site.yml --ask-vault-pass
+# or with a password file:
+#   ansible-playbook -i inventory.ini site.yml --vault-password-file vault_pass.txt
+#
+# group_vars/all.yml (once created) is gitignored — never commit the
+# unencrypted version. The vault-encrypted version IS safe to commit.
+
+# ── Docker images (set by CI to the git-SHA-tagged image; the
+#    fallback 'latest' here is only for a manual first-time run) ──
+registry_url: ghcr.io # or docker.io, leave unset for Docker Hub default
+registry_username: your-github-username
+registry_password: your-registry-token
+backend_image: ghcr.io/your-username/ai-interviewer-backend:latest
+frontend_image: ghcr.io/your-username/ai-interviewer-frontend:latest
+
+# ── Application secrets (rendered into backend.env on the server) ──
+mongo_uri: "mongodb+srv://user:pass@cluster0.mongodb.net/ai_interview_db?retryWrites=true&w=majority"
+jwt_secret: "replace_with_a_real_32+_char_secret"
+jwt_refresh_secret: "replace_with_a_different_32+_char_secret"
+
+groq_api_key: "your_groq_api_key"
+openai_api_key: "your_openai_api_key"
+
+cloudinary_cloud_name: "your_cloudinary_cloud_name"
+cloudinary_api_key: "your_cloudinary_api_key"
+cloudinary_api_secret: "your_cloudinary_api_secret"
+
+# These MUST match wherever the app actually ends up being reachable —
+# e.g. http://<elastic-ip> for an IP-only deployment, or
+# https://yourdomain.com once you have a domain + HTTPS set up.
+client_url: "http://YOUR_EC2_PUBLIC_IP"
+backend_url: "http://YOUR_EC2_PUBLIC_IP"
+
+google_client_id: ""
+google_client_secret: ""
+google_callback_url: "http://YOUR_EC2_PUBLIC_IP/api/auth/google/callback"
+
+adzuna_app_id: ""
+adzuna_app_key: ""

@@ -1,0 +1,73 @@
+---
+# roles/application — deploy the AI-Interviewer app via Docker Compose.
+# Idempotent: re-running updates env/compose files in place and only
+# recreates containers whose config actually changed (docker compose
+# up -d is itself idempotent).
+
+- name: Create application directory
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Copy docker-compose.prod.yml to the server
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../docker-compose.prod.yml"
+    dest: "{{ app_dir }}/docker-compose.prod.yml"
+    mode: "0644"
+  become: true
+
+- name: Render backend.env from secrets (group_vars / vault)
+  ansible.builtin.template:
+    src: backend.env.j2
+    dest: "{{ app_dir }}/backend.env"
+    mode: "0600" # secrets — owner-readable only
+  become: true
+  no_log: true # don't print rendered secrets to CI/Ansible logs
+
+- name: Log in to the container registry
+  community.docker.docker_login:
+    registry_url: "{{ registry_url | default(omit) }}"
+    username: "{{ registry_username }}"
+    password: "{{ registry_password }}"
+  become: true
+  no_log: true
+  when: registry_username is defined and registry_password is defined
+
+- name: Pull latest application images
+  ansible.builtin.command:
+    cmd: docker compose -f docker-compose.prod.yml pull
+    chdir: "{{ app_dir }}"
+  become: true
+  environment:
+    BACKEND_IMAGE: "{{ backend_image }}"
+    FRONTEND_IMAGE: "{{ frontend_image }}"
+  changed_when: true
+
+- name: Start/update the application stack
+  ansible.builtin.command:
+    cmd: docker compose -f docker-compose.prod.yml up -d --remove-orphans
+    chdir: "{{ app_dir }}"
+  become: true
+  environment:
+    BACKEND_IMAGE: "{{ backend_image }}"
+    FRONTEND_IMAGE: "{{ frontend_image }}"
+  changed_when: true
+
+- name: Remove dangling images to save disk space
+  community.docker.docker_prune:
+    images: true
+    images_filters:
+      dangling: true
+  become: true
+
+- name: Wait for backend health endpoint to respond
+  ansible.builtin.uri:
+    url: "http://localhost/api/health"
+    status_code: 200
+  register: application_health_check
+  retries: 10
+  delay: 5
+  until: application_health_check.status == 200
+  become: true

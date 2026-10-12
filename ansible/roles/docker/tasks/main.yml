@@ -1,0 +1,60 @@
+---
+# roles/docker — install Docker Engine + Compose plugin on Amazon Linux 2023.
+# Idempotent: re-running this will not reinstall or restart anything
+# unnecessarily (dnf/systemd modules are naturally idempotent).
+
+- name: Update package cache (dnf)
+  ansible.builtin.dnf:
+    update_cache: true
+  become: true
+
+- name: Install Docker Engine
+  ansible.builtin.dnf:
+    name: docker
+    state: present
+  become: true
+
+- name: Try installing Docker Compose plugin from the distro repos
+  ansible.builtin.dnf:
+    name: docker-compose-plugin
+    state: present
+  become: true
+  register: docker_compose_pkg
+  failed_when: false # may not exist in AL2023 repos; fallback below handles it
+
+- name: Check whether the compose plugin is actually available
+  ansible.builtin.command: docker compose version
+  register: docker_compose_check
+  failed_when: false
+  changed_when: false
+  become: true
+
+- name: Manually install Docker Compose plugin binary (fallback)
+  when: docker_compose_check.rc != 0
+  become: true
+  block:
+    - name: Create CLI plugins directory
+      ansible.builtin.file:
+        path: /usr/local/lib/docker/cli-plugins
+        state: directory
+        mode: "0755"
+
+    - name: Download docker-compose plugin binary
+      ansible.builtin.get_url:
+        url: "https://github.com/docker/compose/releases/download/v2.29.7/docker-compose-linux-x86_64"
+        dest: /usr/local/lib/docker/cli-plugins/docker-compose
+        mode: "0755"
+
+- name: Enable and start Docker service
+  ansible.builtin.systemd:
+    name: docker
+    enabled: true
+    state: started
+  become: true
+
+- name: Add deploy user to the docker group (run docker without sudo)
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: true
+  become: true

@@ -1,0 +1,22 @@
+# Copy this file to terraform.tfvars and fill in real values.
+# terraform.tfvars is gitignored — never commit it.
+
+aws_region   = "ap-south-1"
+project_name = "ai-interviewer"
+environment  = "dev"
+
+instance_type = "t3.micro" # bump to t3.small+ for real usage
+
+# An EC2 key pair that ALREADY EXISTS in your AWS account/region
+# (create via: aws ec2 create-key-pair --key-name ai-interviewer-key
+#  --query 'KeyMaterial' --output text > ai-interviewer-key.pem)
+ssh_key_name = "your-ec2-key-pair-name"
+
+# Restrict this to YOUR IP, not 0.0.0.0/0.
+# Find it with: curl ifconfig.me
+allowed_ssh_cidr = "YOUR_IP_ADDRESS/32"
+
+vpc_cidr            = "10.0.0.0/16"
+public_subnet_cidr  = "10.0.1.0/24"
+availability_zone   = "" # empty = first available AZ in the region
+root_volume_size_gb = 20

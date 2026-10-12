@@ -48,7 +48,14 @@ export const getSocketUrl = () => {
   const envApi = import.meta.env.VITE_API_URL;
   if (envApi) {
     const trimmed = envApi.trim().replace(/\/+$/, '');
-    return trimmed.replace(/\/api$/, '');
+    const withoutApi = trimmed.replace(/\/api$/, '');
+    // A relative value like '/api' strips down to '' — that's not a
+    // valid socket.io target, so fall back to the current page's origin
+    // (correct for same-origin Nginx-proxied production deployments).
+    if (withoutApi && /^https?:\/\//.test(withoutApi)) return withoutApi;
+    if (typeof window !== 'undefined' && window.location?.origin) {
+      return window.location.origin;
+    }
   }
 
   return 'http://localhost:5001';

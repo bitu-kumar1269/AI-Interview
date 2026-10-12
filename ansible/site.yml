@@ -1,0 +1,31 @@
+---
+# site.yml — main Ansible entrypoint
+#
+# Usage:
+#   ansible-playbook -i inventory.ini site.yml
+#
+# Idempotent: safe to run repeatedly. Re-running after a new image
+# push updates the running containers without recreating the whole box.
+
+- name: Deploy AI-Interviewer to EC2
+  hosts: app_servers
+  become: true
+  gather_facts: false # gathered after the connection wait below
+
+  vars:
+    app_dir: /opt/ai-interviewer
+
+  pre_tasks:
+    # A freshly-created EC2 instance can take a minute or two before sshd
+    # is ready; without this the first deploy races the boot.
+    - name: Wait for the instance to accept SSH connections
+      ansible.builtin.wait_for_connection:
+        delay: 5
+        timeout: 300
+
+    - name: Gather facts once the instance is reachable
+      ansible.builtin.setup:
+
+  roles:
+    - docker
+    - application

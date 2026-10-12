@@ -1,0 +1,61 @@
+# docker-compose.prod.yml
+#
+# Production deployment for AI-Interviewer on a single EC2 instance.
+#
+# Services:
+#   backend  — Node/Express + Socket.IO (MongoDB Atlas is external, not here)
+#   redis    — local cache sidecar (optional; app degrades gracefully if down)
+#   frontend — Nginx serving the Vite build + reverse-proxying /api and
+#              /socket.io to the backend container
+#
+# Images are tagged with the git SHA by CI (see .github/workflows/deploy.yml),
+# not ':latest', so a rollback is just changing the tag and re-running
+# `docker compose up -d`.
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml up -d
+#   docker compose -f docker-compose.prod.yml logs -f backend
+#   docker compose -f docker-compose.prod.yml restart backend
+#   docker compose -f docker-compose.prod.yml down
+
+services:
+  backend:
+    image: ${BACKEND_IMAGE:-ai-interviewer-backend:latest}
+    container_name: ai-interviewer-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend.env
+    environment:
+      - PORT=5000
+      - REDIS_URL=redis://redis:6379
+    expose:
+      - "5000"
+    depends_on:
+      - redis
+    networks:
+      - app-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: ai-interviewer-redis
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    expose:
+      - "6379"
+    networks:
+      - app-net
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-ai-interviewer-frontend:latest}
+    container_name: ai-interviewer-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge
