@@ -154,8 +154,8 @@ export default function LandingPage() {
               <Link to="/dashboard" className="btn-primary text-xs sm:text-sm px-4 py-2 sm:px-5 sm:py-2.5">Go to Dashboard</Link>
             ) : (
               <>
-                <Link to="/login" className="btn-ghost text-xs sm:text-sm">Sign In</Link>
-                <Link to="/register" className="btn-primary text-xs sm:text-sm px-4 py-2 sm:px-5 sm:py-2.5">Get Started</Link>
+                <Link to="/login" className="btn-primary text-xs sm:text-sm px-4 py-2 sm:px-5 sm:py-2.5 shadow-md shadow-brand-500/20">Log In</Link>
+                <Link to="/register" className="btn-ghost text-xs sm:text-sm">Sign Up</Link>
               </>
             )}
             <ThemeToggle />
@@ -242,16 +242,16 @@ export default function LandingPage() {
                     <Link
                       to="/login"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="btn-secondary w-full text-center py-2.5"
+                      className="btn-primary w-full text-center py-2.5 shadow-md shadow-brand-500/20"
                     >
-                      Sign In
+                      Log In
                     </Link>
                     <Link
                       to="/register"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="btn-primary w-full text-center py-2.5"
+                      className="btn-secondary w-full text-center py-2.5"
                     >
-                      Get Started Free
+                      Sign Up (New User)
                     </Link>
                   </>
                 )}
@@ -285,7 +285,7 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3.5 mb-6 max-w-md sm:max-w-none mx-auto">
-              <Link to="/register" data-cursor="Start Interview →" className="btn-primary text-sm sm:text-base px-6 sm:px-8 py-3.5 sm:py-4 shadow-lg shadow-brand-500/25 flex items-center justify-center">
+              <Link to="/login" data-cursor="Start Interview →" className="btn-primary text-sm sm:text-base px-6 sm:px-8 py-3.5 sm:py-4 shadow-lg shadow-brand-500/25 flex items-center justify-center">
                 Start Practicing Free <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1" />
               </Link>
               <a
@@ -569,9 +569,15 @@ export default function LandingPage() {
           <p className="text-slate-400 text-sm sm:text-lg mb-6 sm:mb-8 px-2">
             Join 50,000+ candidates who transformed their interview performance and landed top software engineering offers.
           </p>
-          <Link to="/register" data-cursor="Start Interview →" className="btn-primary text-sm sm:text-base px-6 sm:px-10 py-3.5 sm:py-4 inline-flex shadow-xl shadow-brand-500/30">
-            Get Started — It&apos;s Free <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1" />
+          <Link to="/login" data-cursor="Start Interview →" className="btn-primary text-sm sm:text-base px-6 sm:px-10 py-3.5 sm:py-4 inline-flex shadow-xl shadow-brand-500/30">
+            Get Started — Log In <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1" />
           </Link>
+          <p className="mt-3.5 text-xs text-slate-400">
+            New user?{' '}
+            <Link to="/register" className="text-brand-400 hover:text-brand-300 font-semibold underline underline-offset-2 ml-1">
+              Sign up here
+            </Link>
+          </p>
         </motion.div>
       </section>
 

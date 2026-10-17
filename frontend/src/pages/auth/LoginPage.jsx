@@ -1,9 +1,10 @@
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Eye, EyeOff, Loader2, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Sparkles, UserPlus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
+import AuthTabs from '@/components/auth/AuthTabs';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -11,6 +12,8 @@ export default function LoginPage() {
   const { login, isLoading } = useAuthStore();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const initialEmail = searchParams.get('email') || '';
 
   useEffect(() => {
     const oauthError = searchParams.get('oauthError');
@@ -22,13 +25,21 @@ export default function LoginPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: {
+      email: initialEmail,
+      password: '',
+    },
+  });
 
   const onSubmit = async (data) => {
     const result = await login(data);
     if (result.success) {
       toast.success('Welcome back! 👋');
       navigate('/dashboard');
+    } else if (result.isNewUser) {
+      toast.error(result.message || 'No account found with this email. Please sign up!');
+      navigate(`/register?email=${encodeURIComponent(data.email)}`);
     } else {
       toast.error(result.message);
     }
@@ -37,7 +48,7 @@ export default function LoginPage() {
   return (
     <div>
       {/* Brand & Portal Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-5">
         <div className="w-12 h-12 rounded-2xl p-1 bg-gradient-to-br from-brand-500/20 to-accent-600/30 border border-brand-400/30 flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.25)] overflow-hidden">
           <img src="/AI-interview-svg-icon.png" alt="InterviewAI" className="w-full h-full object-cover rounded-xl" />
         </div>
@@ -50,8 +61,11 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <h2 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white mb-1.5 tracking-tight">Welcome Back</h2>
-      <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Sign in to activate your AI interview workspace</p>
+      {/* Auth Toggle Tabs (Log In first, Sign Up for new users) */}
+      <AuthTabs activeTab="login" />
+
+      <h2 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white mb-1.5 tracking-tight">Log In</h2>
+      <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Enter your email and password to access your workspace</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
@@ -61,6 +75,7 @@ export default function LoginPage() {
           <div className="relative">
             <input
               type="email"
+              placeholder="you@example.com"
               className="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#080d1a]/85 border border-slate-300 dark:border-slate-700/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all shadow-sm dark:shadow-inner"
               {...register('email', {
                 required: 'Email is required',
@@ -78,6 +93,7 @@ export default function LoginPage() {
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
+              placeholder="••••••••"
               className="w-full pl-4 pr-10 py-3 rounded-xl bg-white dark:bg-[#080d1a]/85 border border-slate-300 dark:border-slate-700/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all shadow-sm dark:shadow-inner"
               {...register('password', { required: 'Password is required' })}
             />
@@ -102,18 +118,25 @@ export default function LoginPage() {
           ) : (
             <Sparkles className="w-4 h-4 text-brand-200" />
           )}
-          <span>{isLoading ? 'Authenticating...' : 'Sign In'}</span>
+          <span>{isLoading ? 'Authenticating...' : 'Log In'}</span>
         </button>
       </form>
 
       <SocialLoginButtons />
 
-      <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
-        Don&apos;t have an account?{' '}
-        <Link to="/register" className="text-brand-600 dark:text-brand-400 hover:text-brand-500 dark:hover:text-brand-300 font-semibold transition-colors hover:underline ml-1">
-          Create one free
+      {/* Prominent new-user sign-up banner */}
+      <div className="mt-6 p-3.5 rounded-xl bg-brand-500/10 border border-brand-500/20 text-center">
+        <p className="text-xs text-slate-600 dark:text-slate-300">
+          New here or don&apos;t have an account?
+        </p>
+        <Link
+          to={`/register${initialEmail ? `?email=${encodeURIComponent(initialEmail)}` : ''}`}
+          className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-bold text-brand-600 dark:text-brand-400 hover:text-brand-500 dark:hover:text-brand-300 hover:underline transition-colors"
+        >
+          <UserPlus className="w-3.5 h-3.5" />
+          <span>Sign up for a free account →</span>
         </Link>
-      </p>
+      </div>
     </div>
   );
 }

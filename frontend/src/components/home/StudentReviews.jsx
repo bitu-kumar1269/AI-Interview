@@ -308,7 +308,7 @@ export default function StudentReviews() {
               Start practicing with our interactive 3D AI interviewer today. Completely free to begin.
             </p>
             <Link
-              to="/register"
+              to="/login"
               className="btn-primary text-base px-8 py-3.5 inline-flex items-center gap-2 shadow-lg shadow-brand-500/30 text-white"
             >
               Start Free Practice Now <ArrowRight className="w-5 h-5" />

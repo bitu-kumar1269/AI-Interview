@@ -1,17 +1,35 @@
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Loader2, Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Eye, EyeOff, Loader2, Sparkles, LogIn, Sparkle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
+import AuthTabs from '@/components/auth/AuthTabs';
 import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const { register: registerUser, isLoading } = useAuthStore();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm();
+  const initialEmail = searchParams.get('email') || '';
+
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({
+    defaultValues: {
+      name: '',
+      email: initialEmail,
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
+  useEffect(() => {
+    if (initialEmail) {
+      setValue('email', initialEmail);
+    }
+  }, [initialEmail, setValue]);
+
   const password = watch('password');
 
   const onSubmit = async (data) => {
@@ -20,7 +38,12 @@ export default function RegisterPage() {
       toast.success('Account created! Let\'s get started 🎉');
       navigate('/dashboard');
     } else {
-      toast.error(result.message);
+      if (result.message && result.message.toLowerCase().includes('already exists')) {
+        toast.error('Account already exists! Please log in.');
+        navigate(`/login?email=${encodeURIComponent(data.email)}`);
+      } else {
+        toast.error(result.message);
+      }
     }
   };
 
@@ -34,8 +57,18 @@ export default function RegisterPage() {
         <span className="text-xl font-display font-bold text-slate-900 dark:text-white tracking-tight">InterviewAI</span>
       </div>
 
+      {/* Auth Toggle Tabs (Log In first, Sign Up for new users) */}
+      <AuthTabs activeTab="register" />
+
+      {initialEmail && (
+        <div className="mb-4 p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-xs text-cyan-300 flex items-start gap-2">
+          <Sparkle className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
+          <span>New user detected! Complete the details below to create your free account.</span>
+        </div>
+      )}
+
       <h2 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white mb-1 tracking-tight">Create Account</h2>
-      <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mb-5">Start practicing with real-time AI interviewers</p>
+      <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mb-5">Sign up to practice with real-time AI interviewers</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
         <div>
@@ -45,6 +78,7 @@ export default function RegisterPage() {
           <div className="relative">
             <input
               type="text"
+              placeholder="Alex Johnson"
               className="w-full px-4 py-2.5 sm:py-3 rounded-xl bg-white dark:bg-[#080d1a]/85 border border-slate-300 dark:border-slate-700/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all shadow-sm dark:shadow-inner"
               {...register('name', {
                 required: 'Name is required',
@@ -62,6 +96,7 @@ export default function RegisterPage() {
           <div className="relative">
             <input
               type="email"
+              placeholder="you@example.com"
               className="w-full px-4 py-2.5 sm:py-3 rounded-xl bg-white dark:bg-[#080d1a]/85 border border-slate-300 dark:border-slate-700/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all shadow-sm dark:shadow-inner"
               {...register('email', {
                 required: 'Email is required',
@@ -79,6 +114,7 @@ export default function RegisterPage() {
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
+              placeholder="••••••••"
               className="w-full pl-4 pr-10 py-2.5 sm:py-3 rounded-xl bg-white dark:bg-[#080d1a]/85 border border-slate-300 dark:border-slate-700/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all shadow-sm dark:shadow-inner"
               {...register('password', {
                 required: 'Password is required',
@@ -97,8 +133,8 @@ export default function RegisterPage() {
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
-          <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">
-            Use at least 8 characters, including uppercase and lowercase letters, a number, and a special character.
+          <p className="text-slate-500 dark:text-slate-400 text-[11px] mt-1">
+            Minimum 8 chars: uppercase, lowercase, number & special char.
           </p>
           {errors.password && <p className="text-red-500 dark:text-red-400 text-xs mt-1 font-medium">{errors.password.message}</p>}
         </div>
@@ -110,6 +146,7 @@ export default function RegisterPage() {
           <div className="relative">
             <input
               type="password"
+              placeholder="••••••••"
               className="w-full px-4 py-2.5 sm:py-3 rounded-xl bg-white dark:bg-[#080d1a]/85 border border-slate-300 dark:border-slate-700/70 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/25 transition-all shadow-sm dark:shadow-inner"
               {...register('confirmPassword', {
                 required: 'Please confirm your password',
@@ -130,18 +167,25 @@ export default function RegisterPage() {
           ) : (
             <Sparkles className="w-4 h-4 text-brand-200" />
           )}
-          <span>{isLoading ? 'Creating Account...' : 'Create Account'}</span>
+          <span>{isLoading ? 'Creating Account...' : 'Sign Up'}</span>
         </button>
       </form>
 
       <SocialLoginButtons />
 
-      <p className="mt-5 text-center text-xs text-slate-500 dark:text-slate-400">
-        Already have an account?{' '}
-        <Link to="/login" className="text-brand-600 dark:text-brand-400 hover:text-brand-500 dark:hover:text-brand-300 font-semibold transition-colors hover:underline ml-1">
-          Sign in
-        </Link>
-      </p>
+      {/* Helper back to Log In */}
+      <div className="mt-5 text-center">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Already have an account?{' '}
+          <Link
+            to={`/login${initialEmail ? `?email=${encodeURIComponent(initialEmail)}` : ''}`}
+            className="text-brand-600 dark:text-brand-400 hover:text-brand-500 dark:hover:text-brand-300 font-semibold transition-colors hover:underline inline-flex items-center gap-1 ml-1"
+          >
+            <LogIn className="w-3 h-3" />
+            <span>Log In instead</span>
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

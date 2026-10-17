@@ -130,8 +130,9 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (err) {
       const message = err.response?.data?.message || 'Login failed';
+      const isNewUser = err.response?.data?.isNewUser || false;
       dispatch({ type: AUTH_ACTIONS.AUTH_FAILURE, payload: message });
-      return { success: false, message };
+      return { success: false, message, isNewUser };
     }
   }, []);
 

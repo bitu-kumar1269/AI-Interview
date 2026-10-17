@@ -35,11 +35,15 @@ exports.login = async (req, res, next) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email }).select('+password');
-  if (!user || !user.password) {
-    return next(new AppError('Invalid email or password.', 401));
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      isNewUser: true,
+      message: 'No account found with this email. Please sign up to create an account.',
+    });
   }
-  if (!(await user.comparePassword(password))) {
-    return next(new AppError('Invalid email or password.', 401));
+  if (!user.password || !(await user.comparePassword(password))) {
+    return next(new AppError('Incorrect password. Please try again.', 401));
   }
 
   if (!user.isActive) {

@@ -28,7 +28,11 @@ export const useAuthStore = create(
           return { success: true };
         } catch (err) {
           set({ isLoading: false });
-          return { success: false, message: err.response?.data?.message || 'Login failed' };
+          return {
+            success: false,
+            isNewUser: err.response?.data?.isNewUser || false,
+            message: err.response?.data?.message || 'Login failed',
+          };
         }
       },
 

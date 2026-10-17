@@ -432,7 +432,8 @@ the app is fully reachable via the EC2 public IP without it.
 | Ansible can't SSH | `ALLOWED_SSH_CIDR` doesn't match the GitHub Actions runner's IP, or `EC2_SSH_PRIVATE_KEY` doesn't match `EC2_KEY_PAIR_NAME` |
 | Health check fails after deploy | SSH in and check `docker compose logs backend` — usually a missing/wrong secret in `group_vars`/GitHub Secrets |
 | CORS errors in the browser | `CLIENT_URL` doesn't match the actual URL you're visiting from — note that with the Nginx same-origin proxy setup, this should rarely come up in production |
-| OAuth redirect fails | `GOOGLE_CALLBACK_URL` must exactly match what's registered in Google Cloud Console, including the real EC2 IP or domain |
+| Google sign-in fails on the IP-only deployment | Google requires `https://` and a real domain name for OAuth redirect URIs — a bare IP like `http://1.2.3.4/...` is rejected. Leave the `GOOGLE_*` secrets empty for an IP-only deploy (email/password login still works), or add a domain + HTTPS first |
+| OAuth redirect fails (with a domain) | `GOOGLE_CALLBACK_URL` must exactly match what's registered in Google Cloud Console, including the real domain |
 
 ### 12. AWS cost considerations
 
@@ -442,8 +443,10 @@ This intentionally uses a minimal footprint for a student/demo project:
   Tier in your first 12 months; check current Free Tier terms as they
   change over time) — bump to `t3.small` or larger if you see memory
   pressure running Node + Redis + Nginx together
-- **1x Elastic IP** — free while attached to a running instance; AWS
-  charges a small hourly fee if it's ever left unattached
+- **1x Elastic IP (public IPv4 address)** — AWS has charged an hourly
+  fee for every public IPv4 address since 2024, even while attached to a
+  running instance (new accounts get a limited monthly Free Tier allowance
+  for 12 months). Check the current rate on the AWS pricing page.
 - **No NAT Gateway, no Load Balancer, no managed database/Redis** —
   these are the typical sources of unexpected AWS bills and are
   deliberately not used here
