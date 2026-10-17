@@ -89,11 +89,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configure AWS credentials via OIDC
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ap-south-1
+          audience: sts.amazonaws.com
+
+      - name: Verify AWS authentication
+        run: aws sts get-caller-identity
 
       - uses: hashicorp/setup-terraform@v3
 
@@ -150,11 +154,15 @@ jobs:
           pip install ansible
           ansible-galaxy collection install -r ansible/requirements.yml
 
-      - name: Configure AWS credentials via OIDC
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ap-south-1
+          audience: sts.amazonaws.com
+
+      - name: Verify AWS authentication
+        run: aws sts get-caller-identity
 
       # SSH is not open to the world and the runner's IP changes every run,
       # so open port 22 for this runner's IP only, and always close it after.

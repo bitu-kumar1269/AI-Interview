@@ -27,3 +27,43 @@ backend.env
 *.ppk
 id_rsa
 id_rsa.pub
+
+# ── Root .gitignore ────────────────────────────────────────────────
+
+# OS
+.DS_Store
+
+# Terraform
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfvars
+**/*.tfvars.json
+**/*.tfplan
+**/crash.log
+**/crash.*.log
+
+# Ansible
+ansible/inventory.ini
+ansible/group_vars/all.yml
+ansible/*.retry
+ansible/vault_pass.txt
+
+# Docker env file
+backend.env
+
+# SSH keys
+*.pem
+*.ppk
+id_rsa
+id_rsa.pub
+
+# Terraform
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfvars
+**/*.tfvars.json
+**/*.tfplan
+**/crash.log
+**/crash.*.log
