@@ -92,7 +92,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::700922282359:role/github-actions-ai-interview
           aws-region: ap-south-1
           audience: sts.amazonaws.com
 
@@ -157,7 +157,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::700922282359:role/github-actions-ai-interview
           aws-region: ap-south-1
           audience: sts.amazonaws.com
 
