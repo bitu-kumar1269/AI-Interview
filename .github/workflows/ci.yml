@@ -115,22 +115,31 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Setup Python 3.14
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          python-version: "3.14"
+          check-latest: true
 
-      - name: Install Ansible
+      - name: Create Ansible virtual environment
         run: |
-          python -m pip install --upgrade pip
-          pip install ansible ansible-lint
+          python -m venv "$RUNNER_TEMP/ansible-venv"
+          "$RUNNER_TEMP/ansible-venv/bin/python" -m pip install --upgrade pip
+          "$RUNNER_TEMP/ansible-venv/bin/python" -m pip install ansible ansible-lint
+
+      - name: Verify Ansible Python version
+        run: |
+          "$RUNNER_TEMP/ansible-venv/bin/python" --version
+          "$RUNNER_TEMP/ansible-venv/bin/ansible-playbook" --version
+          "$RUNNER_TEMP/ansible-venv/bin/ansible-lint" --version
 
       - name: Check Ansible syntax
         working-directory: devops
         env:
           ANSIBLE_CONFIG: ansible/ansible.cfg
+          ANSIBLE_ROLES_PATH: ${{ github.workspace }}/devops/ansible/roles
         run: |
-          ansible-playbook \
+          "$RUNNER_TEMP/ansible-venv/bin/ansible-playbook" \
             -i ansible/inventory/hosts.ini.example \
             ansible/playbooks/site.yml \
             --syntax-check
@@ -138,7 +147,8 @@ jobs:
       - name: Run Ansible lint
         working-directory: devops
         env:
-          # ANSIBLE_CONFIG: ansible/ansible.cfg
+          ANSIBLE_CONFIG: ansible/ansible.cfg
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}/devops/ansible/roles
         run: |
-          ansible-lint ansible/playbooks/site.yml
+          "$RUNNER_TEMP/ansible-venv/bin/ansible-lint" \
+            ansible/playbooks/site.yml
