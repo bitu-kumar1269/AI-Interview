@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+defaults
+auth           on
+tls            on
+tls_trust_file /etc/ssl/certs/ca-certificates.crt
+syslog         on
+
+account        default
+host           {{ smtp_host }}
+port           {{ smtp_port }}
+from           {{ smtp_user }}
+user           {{ smtp_user }}
+password       {{ smtp_password }}

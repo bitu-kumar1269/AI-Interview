@@ -1,0 +1,6 @@
+---
+- name: Install Puppet and enforce system configuration
+  hosts: monitoring
+  become: true
+  roles:
+    - puppet

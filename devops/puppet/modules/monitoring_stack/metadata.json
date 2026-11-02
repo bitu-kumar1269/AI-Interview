@@ -1,0 +1,9 @@
+{
+  "name": "aiinterviewer-monitoring_stack",
+  "version": "1.0.0",
+  "author": "AI-Interviewer DevOps lab",
+  "summary": "Enforces packages, services and time sync for the Nagios monitoring host",
+  "license": "Apache-2.0",
+  "source": "n/a",
+  "dependencies": []
+}

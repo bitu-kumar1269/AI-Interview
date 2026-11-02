@@ -1,0 +1,6 @@
+---
+- name: Baseline server configuration
+  hosts: monitoring
+  become: true
+  roles:
+    - common

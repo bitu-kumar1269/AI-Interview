@@ -1,0 +1,16 @@
+# {{ ansible_managed }}
+#
+# Ubuntu's stock nagios4 Apache config lets ANYONE from a private IP range use the
+# whole UI with NO login (cmd.cgi is "Require all granted"). This drop-in requires a
+# valid Digest login for every Nagios URL. <Location> is evaluated after the stock
+# <DirectoryMatch>, so its "Require valid-user" replaces the IP-only rule.
+{% for location in ['/nagios4', '/cgi-bin/nagios4'] %}
+<Location {{ location }}>
+    AuthType Digest
+    AuthName "{{ nagios_realm }}"
+    AuthDigestDomain {{ location }}
+    AuthDigestProvider file
+    AuthUserFile /etc/nagios4/htdigest.users
+    Require valid-user
+</Location>
+{% endfor %}

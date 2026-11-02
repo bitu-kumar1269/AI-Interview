@@ -1,0 +1,75 @@
+---
+# Ansible owns the OS baseline: packages, timezone, swap, sysctl.
+# (Puppet owns the monitoring packages/services - see puppet/modules/monitoring_stack.)
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install baseline packages
+  ansible.builtin.apt:
+    name: "{{ base_packages }}"
+    state: present
+
+- name: Set the timezone name
+  ansible.builtin.copy:
+    content: "{{ timezone }}\n"
+    dest: /etc/timezone
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Point /etc/localtime at the timezone
+  ansible.builtin.file:
+    src: "/usr/share/zoneinfo/{{ timezone }}"
+    dest: /etc/localtime
+    state: link
+    force: true
+
+# ── Swap: a 1 GiB instance running Nagios + Apache + PHP benefits from it ──
+- name: Check whether the swap file already exists
+  ansible.builtin.stat:
+    path: /swapfile
+  register: common_swapfile
+  when: swap_size_mb | int > 0
+
+- name: Create the swap file
+  ansible.builtin.command: "fallocate -l {{ swap_size_mb }}M /swapfile"
+  when: swap_size_mb | int > 0 and not common_swapfile.stat.exists
+  changed_when: true
+
+- name: Restrict swap file permissions
+  ansible.builtin.file:
+    path: /swapfile
+    owner: root
+    group: root
+    mode: "0600"
+  when: swap_size_mb | int > 0
+
+- name: Format the swap file
+  ansible.builtin.command: mkswap /swapfile
+  when: swap_size_mb | int > 0 and not common_swapfile.stat.exists
+  changed_when: true
+
+- name: Enable swap now
+  ansible.builtin.command: swapon /swapfile
+  when: swap_size_mb | int > 0 and not common_swapfile.stat.exists
+  changed_when: true
+
+- name: Persist swap in /etc/fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: '^/swapfile\s'
+    line: "/swapfile none swap sw 0 0"
+  when: swap_size_mb | int > 0
+
+- name: Prefer RAM over swap
+  ansible.builtin.copy:
+    content: "vm.swappiness=10\n"
+    dest: /etc/sysctl.d/99-swappiness.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload sysctl
+  tags: [sysctl]

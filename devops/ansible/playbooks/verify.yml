@@ -1,0 +1,103 @@
+---
+- name: Verify infrastructure, services and application reachability
+  hosts: monitoring
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Collect service facts
+      ansible.builtin.service_facts:
+
+    - name: Core services are running
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services[item ~ '.service'] is defined
+          - ansible_facts.services[item ~ '.service'].state == 'running'
+        fail_msg: "{{ item }} is NOT running"
+        success_msg: "{{ item }} is running"
+      loop: [ssh, apache2, nagios4, chrony]
+
+    - name: Query the Puppet enforcement timer (read-only status lookup)
+      ansible.builtin.systemd:
+        name: puppet-apply.timer
+      register: verify_timer
+
+    - name: Puppet enforcement timer is enabled and active
+      ansible.builtin.assert:
+        that:
+          - verify_timer.status.UnitFileState == 'enabled'
+          - verify_timer.status.ActiveState == 'active'
+        success_msg: "puppet-apply.timer is enabled and active"
+
+    - name: SSH port 22 is listening
+      ansible.builtin.wait_for:
+        port: 22
+        timeout: 10
+
+    - name: Nagios web UI port 80 is listening
+      ansible.builtin.wait_for:
+        host: "{{ nagios_ui_listen }}"
+        port: 80
+        timeout: 10
+
+    - name: Nagios configuration passes its own pre-flight check
+      ansible.builtin.command: /usr/sbin/nagios4 -v /etc/nagios4/nagios.cfg
+      register: verify_nagios_cfg
+      changed_when: false
+
+    - name: Nagios web UI is protected (401 without credentials)
+      ansible.builtin.uri:
+        url: "http://{{ '127.0.0.1' if nagios_ui_listen == '0.0.0.0' else nagios_ui_listen }}/nagios4/"
+        status_code: 401
+
+    - name: Monitoring plugins execute (exit code 3 = plugin broken)
+      ansible.builtin.command: "{{ item }}"
+      register: verify_plugins
+      changed_when: false
+      failed_when: verify_plugins.rc == 3
+      loop:
+        - /usr/lib/nagios/plugins/check_mem -w 80 -c 90
+        - /usr/lib/nagios/plugins/check_load -w 1.5,1.2,1.0 -c 3.0,2.5,2.0
+        - /usr/lib/nagios/plugins/check_disk -w 20% -c 10% -p /
+        - /usr/lib/nagios/plugins/check_ssh -H 127.0.0.1
+
+    - name: Puppet reports no configuration drift
+      ansible.builtin.command: >-
+        puppet apply --noop --detailed-exitcodes
+        --modulepath={{ puppet_code_dir }}/modules {{ puppet_code_dir }}/manifests/site.pp
+      register: verify_puppet
+      changed_when: false
+      failed_when: verify_puppet.rc != 0
+
+    - name: Existing application is reachable from the monitoring host
+      block:
+        - name: Frontend responds with HTTP 200
+          ansible.builtin.uri:
+            url: "{{ app_frontend_url }}"
+            status_code: 200
+            timeout: 60
+          register: verify_frontend
+          retries: 3
+          delay: 10
+          until: verify_frontend.status == 200
+
+        - name: Backend health endpoint responds
+          ansible.builtin.uri:
+            url: "{{ app_backend_health_url }}"
+            status_code: 200
+            timeout: 60
+            return_content: true
+          register: verify_backend
+          retries: 3
+          delay: 10
+          until: verify_backend.status == 200
+
+        - name: Backend reports success
+          ansible.builtin.assert:
+            that: verify_backend.json.success | bool
+            success_msg: "Backend /api/health reports success"
+      rescue:
+        - name: Application not reachable (warning only, not a host failure)
+          ansible.builtin.debug:
+            msg: >-
+              WARNING: the application endpoints did not answer. Render's free tier
+              sleeps when idle; if this persists Nagios will raise an alert.

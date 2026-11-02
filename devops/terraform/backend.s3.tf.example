@@ -1,0 +1,13 @@
+# OPTIONAL: remote state. Rename to backend.tf only after the state bucket
+# exists (see the repo-root terraform/bootstrap). Reusing that bucket with a
+# DIFFERENT key keeps this lab's state separate from the app's state.
+#
+# terraform {
+#   backend "s3" {
+#     bucket         = "ai-interviewer-tfstate-<ACCOUNT_ID>"
+#     key            = "devops-lab/terraform.tfstate"
+#     region         = "ap-south-1"
+#     dynamodb_table = "ai-interviewer-tf-lock"
+#     encrypt        = true
+#   }
+# }

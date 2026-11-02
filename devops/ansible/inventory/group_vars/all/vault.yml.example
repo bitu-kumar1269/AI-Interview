@@ -1,0 +1,7 @@
+---
+# Copy to vault.yml, set real values, then ENCRYPT it:
+#   cp vault.yml.example vault.yml
+#   ansible-vault encrypt vault.yml
+# vault.yml is gitignored; never commit it unencrypted.
+vault_nagios_admin_password: "CHANGE_ME_to_a_long_random_password"
+vault_smtp_password: "" # e.g. a Gmail App Password, only if e-mail alerts are wanted

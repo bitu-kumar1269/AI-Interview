@@ -1,0 +1,4 @@
+<%- | String $time_server | -%>
+# Managed by Puppet (module monitoring_stack). Local edits are overwritten.
+# Preferred time source for the monitoring host.
+server <%= $time_server %> prefer iburst minpoll 4 maxpoll 4

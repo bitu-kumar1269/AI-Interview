@@ -1,0 +1,122 @@
+---
+# Ansible owns Nagios CONFIGURATION (object files, login file, mail relay).
+# Puppet owns the Nagios PACKAGES and SERVICES. A bad config can never take
+# monitoring down: the config is validated with `nagios4 -v` BEFORE handlers
+# reload the daemon, and a failed validation stops the play first.
+
+- name: Check that required secrets are defined
+  ansible.builtin.assert:
+    that: nagios_admin_password | length > 0
+    fail_msg: >-
+      nagios_admin_password is empty. Copy inventory/group_vars/all/vault.yml.example
+      to vault.yml, set vault_nagios_admin_password, encrypt it with ansible-vault,
+      and run with --ask-vault-pass.
+
+- name: Check that Nagios is installed (Puppet installs it - run puppet.yml first)
+  ansible.builtin.stat:
+    path: /usr/sbin/nagios4
+  register: nagios_binary
+  failed_when: not nagios_binary.stat.exists
+
+- name: Disable the stock localhost.cfg (replaced by the ai-interviewer-*.cfg files)
+  ansible.builtin.lineinfile:
+    path: /etc/nagios4/nagios.cfg
+    regexp: '^#?cfg_file=/etc/nagios4/objects/localhost\.cfg'
+    line: "#cfg_file=/etc/nagios4/objects/localhost.cfg"
+  notify: Reload nagios4
+
+- name: Deploy Nagios hosts, services and commands
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../nagios/{{ item.src }}"
+    dest: "/etc/nagios4/conf.d/{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - { src: hosts.cfg, dest: ai-interviewer-hosts.cfg }
+    - { src: services.cfg, dest: ai-interviewer-services.cfg }
+    - { src: commands.cfg, dest: ai-interviewer-commands.cfg }
+  notify: Reload nagios4
+
+- name: Render the contacts file (alert e-mail address)
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/../../nagios/contacts.cfg.j2"
+    dest: /etc/nagios4/conf.d/ai-interviewer-contacts.cfg
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload nagios4
+
+- name: Install the custom memory plugin
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../nagios/scripts/check_mem.sh"
+    dest: /usr/lib/nagios/plugins/check_mem
+    owner: root
+    group: root
+    mode: "0755"
+
+# Ubuntu's nagios4 uses Apache DIGEST auth. File format: user:realm:md5(user:realm:password)
+- name: Set the Nagios web UI login
+  ansible.builtin.copy:
+    content: >-
+      {{ nagios_admin_user }}:{{ nagios_realm }}:{{ (nagios_admin_user ~ ':' ~ nagios_realm ~ ':' ~ nagios_admin_password) | hash('md5') }}
+    dest: /etc/nagios4/htdigest.users
+    owner: nagios
+    group: www-data
+    mode: "0640"
+  no_log: true
+
+- name: Bind the web server to the configured address (localhost = SSH tunnel only)
+  ansible.builtin.lineinfile:
+    path: /etc/apache2/ports.conf
+    regexp: '^Listen\s+(\S+:)?80\s*$'
+    line: "Listen {{ nagios_ui_listen }}:80"
+  notify: Restart apache2
+
+# Ubuntu's default Apache config for Nagios has NO login (see templates/nagios-auth.conf.j2).
+- name: Enable the Apache digest-auth module
+  ansible.builtin.command: a2enmod auth_digest
+  register: nagios_a2enmod
+  changed_when: "'Enabling module' in nagios_a2enmod.stdout"
+  notify: Restart apache2
+
+- name: Require a login for the whole Nagios web UI
+  ansible.builtin.template:
+    src: nagios-auth.conf.j2
+    dest: /etc/apache2/conf-available/ai-interviewer-nagios-auth.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart apache2
+
+- name: Enable the Nagios login configuration
+  ansible.builtin.command: a2enconf ai-interviewer-nagios-auth
+  register: nagios_a2enconf
+  changed_when: "'Enabling conf' in nagios_a2enconf.stdout"
+  notify: Restart apache2
+
+- name: Make the Nagios CGIs honour the logged-in user (stock default is off)
+  ansible.builtin.lineinfile:
+    path: /etc/nagios4/cgi.cfg
+    regexp: '^use_authentication='
+    line: "use_authentication=1"
+
+- name: Verify the Apache configuration before it is restarted
+  ansible.builtin.command: apache2ctl configtest
+  register: nagios_apache_test
+  changed_when: false
+
+- name: Configure the e-mail relay for alerts (only when SMTP credentials are provided)
+  ansible.builtin.template:
+    src: msmtprc.j2
+    dest: /etc/msmtprc
+    owner: nagios
+    group: nagios
+    mode: "0600"
+  no_log: true
+  when: smtp_user | length > 0 and smtp_password | length > 0
+
+- name: Verify the complete Nagios configuration (nagios4 -v)
+  ansible.builtin.command: /usr/sbin/nagios4 -v /etc/nagios4/nagios.cfg
+  register: nagios_verify
+  changed_when: false

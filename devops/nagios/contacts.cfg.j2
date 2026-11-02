@@ -1,0 +1,20 @@
+# {{ ansible_managed }}
+# Rendered by Ansible from nagios_notification_email.
+# Notifications go through Ubuntu's notify-*-by-email commands, which use the
+# local mail command -> msmtp relay (see roles/nagios). Until SMTP credentials
+# are provided, Nagios still records every state change in its log and UI.
+
+define contact {
+    use                             generic-contact
+    contact_name                    ai-admin
+    alias                           AI-Interviewer administrator
+    email                           {{ nagios_notification_email | default('root@localhost', true) }}
+    host_notification_options       d,u,r
+    service_notification_options    w,u,c,r
+}
+
+define contactgroup {
+    contactgroup_name               ai-admins
+    alias                           AI-Interviewer administrators
+    members                         ai-admin
+}

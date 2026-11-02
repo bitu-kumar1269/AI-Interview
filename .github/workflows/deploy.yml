@@ -2,58 +2,82 @@ name: Deploy to AWS
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch: {} # allow manual re-run from the Actions tab
+    branches:
+      - main
+
+  workflow_dispatch: {}
 
 permissions:
-  id-token: write # required for AWS OIDC
   contents: read
+  id-token: write
 
 concurrency:
   group: deploy-production
-  cancel-in-progress: false # never cancel a deploy midway (could corrupt state)
+  cancel-in-progress: false
 
 env:
   AWS_REGION: ap-south-1
   TF_LOCK_TABLE: ai-interviewer-tf-lock
+
   REGISTRY: ghcr.io
+
   BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/ai-interviewer-backend
   FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/ai-interviewer-frontend
 
 jobs:
+
+  # ============================================================
+  # CI
+  # ============================================================
+
   ci:
+    name: Run CI
     uses: ./.github/workflows/ci.yml
 
+
+  # ============================================================
+  # BUILD AND PUSH DOCKER IMAGES
+  # ============================================================
+
   build-and-push:
-    needs: ci
+    name: Build and Push Docker Images
+
+    needs:
+      - ci
+
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
-      packages: write # push images to GHCR
+      packages: write
+
     outputs:
       backend_tag: ${{ steps.tags.outputs.backend_tag }}
       frontend_tag: ${{ steps.tags.outputs.frontend_tag }}
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Compute image tags (git SHA, NOT latest)
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Calculate Docker image tags
         id: tags
         run: |
-          echo "backend_tag=${{ env.BACKEND_IMAGE }}:${{ github.sha }}" >> "$GITHUB_OUTPUT"
-          echo "frontend_tag=${{ env.FRONTEND_IMAGE }}:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          echo "backend_tag=${BACKEND_IMAGE}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "frontend_tag=${FRONTEND_IMAGE}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
 
-      - name: Set up Docker Buildx
+      - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GitHub Container Registry
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build + push backend image
-        uses: docker/build-push-action@v5
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
         with:
           context: ./backend
           push: true
@@ -61,8 +85,8 @@ jobs:
             ${{ steps.tags.outputs.backend_tag }}
             ${{ env.BACKEND_IMAGE }}:latest
 
-      - name: Build + push frontend image
-        uses: docker/build-push-action@v5
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
         with:
           context: ./frontend
           push: true
@@ -72,39 +96,56 @@ jobs:
             ${{ steps.tags.outputs.frontend_tag }}
             ${{ env.FRONTEND_IMAGE }}:latest
 
+
+  # ============================================================
+  # TERRAFORM
+  # ============================================================
+
   terraform:
+    name: Terraform Infrastructure
+
+    needs:
+      - build-and-push
+
     runs-on: ubuntu-latest
-    needs: build-and-push
+
     permissions:
       contents: read
-      id-token: write # AWS OIDC
-    environment: production # requires manual approval if you configure
-    # a GitHub Environment protection rule named "production"
+      id-token: write
+
+    environment: production
+
+    defaults:
+      run:
+        working-directory: devops/terraform
+
     outputs:
       ec2_ip: ${{ steps.outputs.outputs.ec2_ip }}
       sg_id: ${{ steps.outputs.outputs.sg_id }}
-    defaults:
-      run:
-        working-directory: terraform
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::700922282359:role/github-actions-ai-interview
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ap-south-1
           audience: sts.amazonaws.com
 
       - name: Verify AWS authentication
-        run: aws sts get-caller-identity
+        run: |
+          aws sts get-caller-identity
 
-      - uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform fmt check
+      - name: Terraform format check
         run: terraform fmt -check -recursive
 
-      - name: Terraform init (S3 remote state)
+      - name: Terraform init
         run: |
           terraform init \
             -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
@@ -112,9 +153,6 @@ jobs:
             -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="dynamodb_table=${{ env.TF_LOCK_TABLE }}" \
             -backend-config="encrypt=true"
-        # Remote state is required here: with local state, every run would
-        # start empty and try to create duplicate infrastructure. Bootstrap
-        # the bucket once via terraform/bootstrap (see README.md).
 
       - name: Terraform validate
         run: terraform validate
@@ -123,84 +161,143 @@ jobs:
         run: |
           terraform plan \
             -var="ssh_key_name=${{ secrets.EC2_KEY_PAIR_NAME }}" \
-            -var="allowed_ssh_cidr=${{ secrets.ALLOWED_SSH_CIDR }}" \
+            -var="admin_cidr=${{ secrets.ALLOWED_SSH_CIDR }}" \
             -out=tfplan
 
       - name: Terraform apply
-        run: terraform apply -auto-approve tfplan
-        # NOTE: auto-approve here is gated by the "production" GitHub
-        # Environment above, which you should configure with required
-        # reviewers in repo Settings > Environments. Never add a
-        # `terraform destroy` step to this workflow.
+        run: |
+          terraform apply -auto-approve tfplan
 
-      - name: Capture outputs
+      - name: Capture Terraform outputs
         id: outputs
         run: |
           echo "ec2_ip=$(terraform output -raw ec2_public_ip)" >> "$GITHUB_OUTPUT"
           echo "sg_id=$(terraform output -raw security_group_id)" >> "$GITHUB_OUTPUT"
 
+      - name: Display deployment target
+        run: |
+          echo "EC2 IP: ${{ steps.outputs.outputs.ec2_ip }}"
+          echo "Security Group: ${{ steps.outputs.outputs.sg_id }}"
+
+
+  # ============================================================
+  # ANSIBLE DEPLOYMENT
+  # ============================================================
+
   ansible-deploy:
+    name: Deploy Application with Ansible
+
+    needs:
+      - build-and-push
+      - terraform
+
     runs-on: ubuntu-latest
-    needs: [build-and-push, terraform]
+
     permissions:
       contents: read
-      id-token: write # AWS OIDC (security group rule for the runner IP)
-      packages: read # token is passed to the server for `docker pull`
+      id-token: write
+      packages: read
+
     steps:
-      - uses: actions/checkout@v4
 
-      - name: Install Ansible + Docker collection
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Ansible
         run: |
+          python -m pip install --upgrade pip
           pip install ansible
-          ansible-galaxy collection install -r ansible/requirements.yml
 
-      - name: Configure AWS credentials
+      # --------------------------------------------------------
+      # AWS OIDC
+      # --------------------------------------------------------
+
+      - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::700922282359:role/github-actions-ai-interview
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ap-south-1
           audience: sts.amazonaws.com
 
       - name: Verify AWS authentication
-        run: aws sts get-caller-identity
-
-      # SSH is not open to the world and the runner's IP changes every run,
-      # so open port 22 for this runner's IP only, and always close it after.
-      - name: Temporarily allow this runner's IP on port 22
-        id: sg
         run: |
-          RUNNER_IP="$(curl -s https://checkip.amazonaws.com | tr -d '\n')"
-          aws ec2 authorize-security-group-ingress \
-            --group-id "${{ needs.terraform.outputs.sg_id }}" \
-            --protocol tcp --port 22 --cidr "${RUNNER_IP}/32"
+          aws sts get-caller-identity
+
+      # --------------------------------------------------------
+      # Get GitHub runner public IP
+      # --------------------------------------------------------
+
+      - name: Get GitHub runner public IP
+        id: runner-ip
+        run: |
+          RUNNER_IP="$(curl -fsSL https://checkip.amazonaws.com | tr -d '\n')"
+
+          echo "Runner IP: ${RUNNER_IP}"
+
           echo "runner_ip=${RUNNER_IP}" >> "$GITHUB_OUTPUT"
 
-      - name: Write SSH private key
+      # --------------------------------------------------------
+      # Temporarily allow SSH from GitHub runner
+      # --------------------------------------------------------
+
+      - name: Allow runner IP on SSH
+        id: sg
+        run: |
+          aws ec2 authorize-security-group-ingress \
+            --group-id "${{ needs.terraform.outputs.sg_id }}" \
+            --protocol tcp \
+            --port 22 \
+            --cidr "${{ steps.runner-ip.outputs.runner_ip }}/32"
+
+      # --------------------------------------------------------
+      # SSH private key
+      # --------------------------------------------------------
+
+      - name: Create SSH private key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key.pem
+
+          printf '%s\n' \
+            "${{ secrets.EC2_SSH_PRIVATE_KEY }}" \
+            > ~/.ssh/deploy_key.pem
+
           chmod 600 ~/.ssh/deploy_key.pem
 
-      - name: Write dynamic inventory
+      # --------------------------------------------------------
+      # Dynamic Ansible inventory
+      # --------------------------------------------------------
+
+      - name: Create Ansible inventory
         run: |
-          cat > ansible/inventory.ini <<EOF
+          mkdir -p devops/ansible/inventory
+
+          cat > devops/ansible/inventory/hosts.ini <<EOF
           [app_servers]
-          app1 ansible_host=${{ needs.terraform.outputs.ec2_ip }} ansible_user=ec2-user ansible_ssh_private_key_file=~/.ssh/deploy_key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=accept-new'
+          app1 ansible_host=${{ needs.terraform.outputs.ec2_ip }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy_key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=accept-new'
           EOF
 
-      - name: Write group_vars from GitHub Secrets
-        # This file exists only on the runner for this job and is
-        # never committed. Using GitHub Secrets directly here is the
-        # CI-side alternative to Ansible Vault (group_vars/all.yml.example
-        # documents the Vault-based path for manual/local runs).
+          cat devops/ansible/inventory/hosts.ini
+
+      # --------------------------------------------------------
+      # Create temporary Ansible variables
+      # --------------------------------------------------------
+
+      - name: Create Ansible deployment variables
         run: |
-          mkdir -p ansible/group_vars
-          cat > ansible/group_vars/all.yml <<EOF
-          registry_username: ${{ github.actor }}
-          registry_password: ${{ secrets.GITHUB_TOKEN }}
-          registry_url: ghcr.io
-          backend_image: ${{ needs.build-and-push.outputs.backend_tag }}
-          frontend_image: ${{ needs.build-and-push.outputs.frontend_tag }}
+          mkdir -p devops/ansible/inventory/group_vars/all
+
+          cat > devops/ansible/inventory/group_vars/all/ci.yml <<EOF
+          registry_username: "${{ github.actor }}"
+          registry_password: "${{ secrets.GITHUB_TOKEN }}"
+          registry_url: "ghcr.io"
+
+          backend_image: "${{ needs.build-and-push.outputs.backend_tag }}"
+          frontend_image: "${{ needs.build-and-push.outputs.frontend_tag }}"
 
           mongo_uri: "${{ secrets.MONGO_URI }}"
           jwt_secret: "${{ secrets.JWT_SECRET }}"
@@ -224,23 +321,59 @@ jobs:
           adzuna_app_key: "${{ secrets.ADZUNA_APP_KEY }}"
           EOF
 
-      - name: Run Ansible playbook
+      # --------------------------------------------------------
+      # Run Ansible
+      # --------------------------------------------------------
+
+      - name: Run Ansible deployment
+        working-directory: devops
+        env:
+          ANSIBLE_CONFIG: ansible/ansible.cfg
         run: |
-          cd ansible
-          ansible-playbook -i inventory.ini site.yml
+          ansible-playbook \
+            -i ansible/inventory/hosts.ini \
+            ansible/playbooks/site.yml
+
+      # --------------------------------------------------------
+      # Application health check
+      # --------------------------------------------------------
+
+      - name: Wait for application
+        run: |
+          sleep 10
 
       - name: Health check
         run: |
-          curl --fail --retry 5 --retry-delay 5 \
+          curl \
+            --fail \
+            --retry 10 \
+            --retry-delay 5 \
+            --retry-connrefused \
             "http://${{ needs.terraform.outputs.ec2_ip }}/api/health"
 
-      - name: Revoke runner IP from port 22
-        if: always() && steps.sg.outputs.runner_ip != ''
-        run: |
-          aws ec2 revoke-security-group-ingress \
-            --group-id "${{ needs.terraform.outputs.sg_id }}" \
-            --protocol tcp --port 22 --cidr "${{ steps.sg.outputs.runner_ip }}/32"
+      # --------------------------------------------------------
+      # Always remove temporary SSH rule
+      # --------------------------------------------------------
 
-      - name: Clean up local secrets file
+      - name: Remove runner SSH access
         if: always()
-        run: rm -f ansible/group_vars/all.yml ~/.ssh/deploy_key.pem
+        run: |
+          if [ -n "${{ steps.runner-ip.outputs.runner_ip }}" ]; then
+            aws ec2 revoke-security-group-ingress \
+              --group-id "${{ needs.terraform.outputs.sg_id }}" \
+              --protocol tcp \
+              --port 22 \
+              --cidr "${{ steps.runner-ip.outputs.runner_ip }}/32" \
+              || true
+          fi
+
+      # --------------------------------------------------------
+      # Remove local secrets
+      # --------------------------------------------------------
+
+      - name: Cleanup secrets
+        if: always()
+        run: |
+          rm -f ~/.ssh/deploy_key.pem
+          rm -f devops/ansible/inventory/hosts.ini
+          rm -f devops/ansible/inventory/group_vars/all/ci.yml

@@ -4,21 +4,38 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  id-token: write
   contents: read
+  id-token: write
 
 jobs:
   test-auth:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    name: Verify AWS OIDC
 
-      - name: Configure AWS credentials
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ap-south-1
           audience: sts.amazonaws.com
 
-      - name: Verify AWS authentication
-        run: aws sts get-caller-identity
+      - name: Verify AWS identity
+        run: |
+          aws sts get-caller-identity
+
+      - name: Verify AWS region
+        run: |
+          aws configure get region
+
+      - name: Verify EC2 access
+        run: |
+          aws ec2 describe-instances \
+            --region ap-south-1 \
+            --query 'Reservations[].Instances[].InstanceId' \
+            --output table

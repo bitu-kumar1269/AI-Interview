@@ -1,0 +1,2 @@
+---
+# (no handlers - the timer task reloads systemd itself)

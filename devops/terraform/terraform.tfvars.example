@@ -1,0 +1,20 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored.
+
+aws_region    = "ap-south-1"
+project_name  = "ai-interviewer"
+environment   = "lab"
+instance_type = "t3.micro"
+
+# An EC2 key pair that ALREADY exists in this region.
+key_name             = "ai-interviewer-key"
+ssh_private_key_path = "~/.ssh/ai-interviewer-key.pem"
+
+# YOUR public IP + /32  (find it with: curl -s https://checkip.amazonaws.com)
+admin_cidr = "YOUR_IP_ADDRESS/32"
+
+# Keep empty and use the SSH tunnel to reach the Nagios UI.
+web_allowed_cidrs = []
+
+# Empty = reuse the default VPC / its first subnet.
+vpc_id    = ""
+subnet_id = ""

@@ -1,0 +1,7 @@
+---
+# Requires puppet.yml to have run first: Puppet installs the Nagios packages.
+- name: Configure Nagios monitoring
+  hosts: monitoring
+  become: true
+  roles:
+    - nagios

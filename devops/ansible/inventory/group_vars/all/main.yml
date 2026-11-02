@@ -1,0 +1,29 @@
+---
+# ── Non-secret settings ──────────────────────────────────────────────
+timezone: Asia/Kolkata
+swap_size_mb: 1024 # 0 disables the swap file
+base_packages: [curl, jq, unzip, htop, ca-certificates, tzdata]
+
+devops_dir: /opt/devops
+puppet_code_dir: "{{ devops_dir }}/puppet"
+puppet_classes_to_validate: [init, packages, time, services, puppet_agent]
+
+# Nagios web UI: bound to localhost by default -> reach it with the SSH tunnel.
+# Set to 0.0.0.0 ONLY if you also set web_allowed_cidrs in Terraform.
+nagios_ui_listen: "127.0.0.1"
+nagios_admin_user: nagiosadmin # must match authorized_for_* in /etc/nagios4/cgi.cfg
+nagios_realm: Nagios4 # must match AuthName in /etc/nagios4/apache2.conf
+
+# Alert e-mail. Leave empty to skip e-mail (state changes are still logged/shown).
+nagios_notification_email: ""
+smtp_host: smtp.gmail.com
+smtp_port: 587
+smtp_user: ""
+
+# Existing application endpoints (hosted on Render) - used by verify.yml
+app_frontend_url: "https://ai-interview-9qqm.onrender.com/"
+app_backend_health_url: "https://ai-interviewer-backend-opaw.onrender.com/api/health"
+
+# ── Secrets come from the (Ansible Vault encrypted) vault.yml ────────
+nagios_admin_password: "{{ vault_nagios_admin_password | default('') }}"
+smtp_password: "{{ vault_smtp_password | default('') }}"

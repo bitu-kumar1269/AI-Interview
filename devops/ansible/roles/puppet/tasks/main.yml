@@ -1,0 +1,81 @@
+---
+# Ansible installs Puppet and runs it; Puppet then owns the resources declared
+# in puppet/modules/monitoring_stack. Ansible never touches those resources.
+
+- name: Install the Puppet agent (provides the puppet command)
+  ansible.builtin.apt:
+    name: puppet-agent
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create the Puppet code directory
+  ansible.builtin.file:
+    path: "{{ puppet_code_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Copy Puppet manifests and modules from this repository
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../puppet/"
+    dest: "{{ puppet_code_dir }}/"
+    owner: root
+    group: root
+    mode: "0644"
+    directory_mode: "0755"
+
+- name: Validate Puppet manifests on the host
+  ansible.builtin.command: >-
+    puppet parser validate
+    {{ puppet_code_dir }}/modules/monitoring_stack/manifests/{{ item }}.pp
+  loop: "{{ puppet_classes_to_validate }}"
+  changed_when: false
+
+- name: Dry run (noop) - what would Puppet change?
+  ansible.builtin.command: >-
+    puppet apply --noop --detailed-exitcodes
+    --modulepath={{ puppet_code_dir }}/modules {{ puppet_code_dir }}/manifests/site.pp
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  register: puppet_noop
+  changed_when: false
+  failed_when: puppet_noop.rc not in [0, 2]
+
+- name: Apply the Puppet configuration
+  ansible.builtin.command: >-
+    puppet apply --detailed-exitcodes
+    --modulepath={{ puppet_code_dir }}/modules {{ puppet_code_dir }}/manifests/site.pp
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  register: puppet_apply
+  changed_when: puppet_apply.rc == 2 # 2 = resources were changed; 0 = already compliant
+  failed_when: puppet_apply.rc not in [0, 2]
+
+# ── Ongoing enforcement: re-apply every 30 minutes (masterless, no Puppet server) ──
+- name: Install the puppet-apply systemd service
+  ansible.builtin.template:
+    src: puppet-apply.service.j2
+    dest: /etc/systemd/system/puppet-apply.service
+    owner: root
+    group: root
+    mode: "0644"
+  tags: [timer]
+
+- name: Install the puppet-apply systemd timer
+  ansible.builtin.template:
+    src: puppet-apply.timer.j2
+    dest: /etc/systemd/system/puppet-apply.timer
+    owner: root
+    group: root
+    mode: "0644"
+  tags: [timer]
+
+- name: Enable and start the puppet-apply timer
+  ansible.builtin.systemd:
+    name: puppet-apply.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+  tags: [timer]
