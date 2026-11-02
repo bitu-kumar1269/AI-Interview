@@ -203,27 +203,41 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
+
+      # --------------------------------------------------------
+      # Python 3.14 + isolated Ansible environment
+      # --------------------------------------------------------
+
+      - name: Setup Python 3.14
         uses: actions/setup-python@v5
         with:
           python-version: "3.14"
+          check-latest: true
 
-      - name: Verify Python
+      - name: Create Ansible virtual environment
         run: |
-          python --version
-          which python
+          python -m venv "$RUNNER_TEMP/ansible-venv"
 
-      - name: Install Ansible
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install ansible
+          "$RUNNER_TEMP/ansible-venv/bin/python" --version
+
+          "$RUNNER_TEMP/ansible-venv/bin/python" \
+            -m pip install --upgrade pip
+
+          "$RUNNER_TEMP/ansible-venv/bin/python" \
+            -m pip install ansible
 
       - name: Verify Ansible
         run: |
-          python --version
-          which python
-          which ansible-playbook
-          python -m ansible --version
+          echo "Python:"
+          "$RUNNER_TEMP/ansible-venv/bin/python" --version
+
+          echo "Python executable:"
+          "$RUNNER_TEMP/ansible-venv/bin/python" \
+            -c "import sys; print(sys.executable)"
+
+          echo "Ansible:"
+          "$RUNNER_TEMP/ansible-venv/bin/ansible-playbook" --version
+
 
       # --------------------------------------------------------
       # AWS OIDC
@@ -240,6 +254,7 @@ jobs:
         run: |
           aws sts get-caller-identity
 
+
       # --------------------------------------------------------
       # Get GitHub runner public IP
       # --------------------------------------------------------
@@ -253,6 +268,7 @@ jobs:
 
           echo "runner_ip=${RUNNER_IP}" >> "$GITHUB_OUTPUT"
 
+
       # --------------------------------------------------------
       # Temporarily allow SSH from GitHub runner
       # --------------------------------------------------------
@@ -265,6 +281,7 @@ jobs:
             --protocol tcp \
             --port 22 \
             --cidr "${{ steps.runner-ip.outputs.runner_ip }}/32"
+
 
       # --------------------------------------------------------
       # SSH private key
@@ -280,6 +297,7 @@ jobs:
 
           chmod 600 ~/.ssh/deploy_key.pem
 
+
       # --------------------------------------------------------
       # Dynamic Ansible inventory
       # --------------------------------------------------------
@@ -294,6 +312,7 @@ jobs:
           EOF
 
           cat devops/ansible/inventory/hosts.ini
+
 
       # --------------------------------------------------------
       # Create temporary Ansible variables
@@ -333,28 +352,12 @@ jobs:
           adzuna_app_key: "${{ secrets.ADZUNA_APP_KEY }}"
           EOF
 
+          cat devops/ansible/inventory/group_vars/all/ci.yml
+
+
       # --------------------------------------------------------
       # Run Ansible
       # --------------------------------------------------------
-
-            - name: Setup Python 3.14
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.14"
-          check-latest: true
-
-      - name: Create Ansible virtual environment
-        run: |
-          python -m venv "$RUNNER_TEMP/ansible-venv"
-          "$RUNNER_TEMP/ansible-venv/bin/python" --version
-          "$RUNNER_TEMP/ansible-venv/bin/python" -m pip install --upgrade pip
-          "$RUNNER_TEMP/ansible-venv/bin/python" -m pip install ansible
-
-      - name: Verify Ansible
-        run: |
-          "$RUNNER_TEMP/ansible-venv/bin/python" --version
-          "$RUNNER_TEMP/ansible-venv/bin/python" -c "import sys; print(sys.executable)"
-          "$RUNNER_TEMP/ansible-venv/bin/ansible-playbook" --version
 
       - name: Run Ansible deployment
         working-directory: devops
@@ -364,6 +367,7 @@ jobs:
           "$RUNNER_TEMP/ansible-venv/bin/ansible-playbook" \
             -i ansible/inventory/hosts.ini \
             ansible/playbooks/site.yml
+
 
       # --------------------------------------------------------
       # Application health check
@@ -382,6 +386,7 @@ jobs:
             --retry-connrefused \
             "http://${{ needs.terraform.outputs.ec2_ip }}/api/health"
 
+
       # --------------------------------------------------------
       # Always remove temporary SSH rule
       # --------------------------------------------------------
@@ -397,6 +402,7 @@ jobs:
               --cidr "${{ steps.runner-ip.outputs.runner_ip }}/32" \
               || true
           fi
+
 
       # --------------------------------------------------------
       # Remove local secrets
