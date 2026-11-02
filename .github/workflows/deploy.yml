@@ -221,7 +221,9 @@ jobs:
       - name: Verify Ansible
         run: |
           python --version
-          ansible --version
+          which python
+          which ansible-playbook
+          python -m ansible --version
 
       # --------------------------------------------------------
       # AWS OIDC
@@ -340,7 +342,7 @@ jobs:
         env:
           ANSIBLE_CONFIG: ansible/ansible.cfg
         run: |
-          ansible-playbook \
+          python -m ansible.cli.playbook \
             -i ansible/inventory/hosts.ini \
             ansible/playbooks/site.yml
 
