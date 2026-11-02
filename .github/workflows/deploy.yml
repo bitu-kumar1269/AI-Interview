@@ -337,12 +337,31 @@ jobs:
       # Run Ansible
       # --------------------------------------------------------
 
+            - name: Setup Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          check-latest: true
+
+      - name: Create Ansible virtual environment
+        run: |
+          python -m venv "$RUNNER_TEMP/ansible-venv"
+          "$RUNNER_TEMP/ansible-venv/bin/python" --version
+          "$RUNNER_TEMP/ansible-venv/bin/python" -m pip install --upgrade pip
+          "$RUNNER_TEMP/ansible-venv/bin/python" -m pip install ansible
+
+      - name: Verify Ansible
+        run: |
+          "$RUNNER_TEMP/ansible-venv/bin/python" --version
+          "$RUNNER_TEMP/ansible-venv/bin/python" -c "import sys; print(sys.executable)"
+          "$RUNNER_TEMP/ansible-venv/bin/ansible-playbook" --version
+
       - name: Run Ansible deployment
         working-directory: devops
         env:
           ANSIBLE_CONFIG: ansible/ansible.cfg
         run: |
-          python -m ansible.cli.playbook \
+          "$RUNNER_TEMP/ansible-venv/bin/ansible-playbook" \
             -i ansible/inventory/hosts.ini \
             ansible/playbooks/site.yml
 
