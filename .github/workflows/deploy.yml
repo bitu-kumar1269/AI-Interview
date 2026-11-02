@@ -264,21 +264,42 @@ jobs:
       # --------------------------------------------------------
       # AWS OIDC
       # --------------------------------------------------------
-      - name: Debug GitHub OIDC claims
-        uses: github/actions-oidc-debugger@main
-        with:
-          audience: sts.amazonaws.com
+      # - name: Debug GitHub OIDC claims
+      #   uses: github/actions-oidc-debugger@main
+      #   with:
+      #     audience: sts.amazonaws.com
 
+      
+      - name: Test AWS OIDC directly
+        shell: bash
+        run: |
+          set -e
+
+          RESPONSE=$(curl -sS \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com")
+
+          TOKEN=$(echo "$RESPONSE" | jq -r '.value')
+
+          echo "Testing AWS role assumption directly..."
+
+          aws sts assume-role-with-web-identity \
+            --role-arn "arn:aws:iam::700922282359:role/github-actions-ai-interviewer" \
+            --role-session-name "github-actions-test" \
+            --web-identity-token "$TOKEN" \
+            --duration-seconds 900
+            
       - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ap-south-1
           audience: sts.amazonaws.com
-
+          
       - name: Verify AWS authentication
         run: |
           aws sts get-caller-identity
+
 
 
       # --------------------------------------------------------
