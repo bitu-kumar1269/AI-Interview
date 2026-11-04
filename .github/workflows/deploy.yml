@@ -83,6 +83,7 @@ jobs:
     outputs:
       ec2_ip: ${{ steps.outputs.outputs.ec2_ip }}
       sg_id: ${{ steps.outputs.outputs.sg_id }}
+
     defaults:
       run:
         working-directory: devops/terraform
@@ -136,8 +137,10 @@ jobs:
 
       - name: Capture outputs
         id: outputs
+        working-directory: devops/terraform
         run: |
-          echo "ec2_ip=$(terraform output -raw ec2_public_ip)" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          echo "ec2_ip=$(terraform output -raw public_ip)" >> "$GITHUB_OUTPUT"
           echo "sg_id=$(terraform output -raw security_group_id)" >> "$GITHUB_OUTPUT"
 
   ansible-deploy:
@@ -185,65 +188,123 @@ jobs:
 
       - name: Write dynamic inventory
         run: |
-          cat > devops/ansible/inventory.ini <<EOF
-          [app_servers]
-          app1 ansible_host=${{ needs.terraform.outputs.ec2_ip }} ansible_user=ec2-user ansible_ssh_private_key_file=~/.ssh/deploy_key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=accept-new'
+          mkdir -p devops/ansible/inventory
+          cat > devops/ansible/inventory/hosts.ini <<EOF
+          [monitoring]
+          monitor-host ansible_host=${{ needs.terraform.outputs.ec2_ip }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy_key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=accept-new'
           EOF
 
-      - name: Write group_vars from GitHub Secrets
-        # This file exists only on the runner for this job and is
-        # never committed. Using GitHub Secrets directly here is the
-        # CI-side alternative to Ansible Vault (group_vars/all.yml.example
-        # documents the Vault-based path for manual/local runs).
+      
+      # Create Ansible inventory in the correct location
+      - name: Write dynamic inventory
         run: |
-          mkdir -p devops/ansible/group_vars
-          cat > devops/ansible/group_vars/all.yml <<EOF
-          registry_username: ${{ github.actor }}
-          registry_password: ${{ secrets.GITHUB_TOKEN }}
-          registry_url: ghcr.io
-          backend_image: ${{ needs.build-and-push.outputs.backend_tag }}
-          frontend_image: ${{ needs.build-and-push.outputs.frontend_tag }}
-
-          mongo_uri: "${{ secrets.MONGO_URI }}"
-          jwt_secret: "${{ secrets.JWT_SECRET }}"
-          jwt_refresh_secret: "${{ secrets.JWT_REFRESH_SECRET }}"
-
-          groq_api_key: "${{ secrets.GROQ_API_KEY }}"
-          openai_api_key: "${{ secrets.OPENAI_API_KEY }}"
-
-          cloudinary_cloud_name: "${{ secrets.CLOUDINARY_CLOUD_NAME }}"
-          cloudinary_api_key: "${{ secrets.CLOUDINARY_API_KEY }}"
-          cloudinary_api_secret: "${{ secrets.CLOUDINARY_API_SECRET }}"
-
-          client_url: "http://${{ needs.terraform.outputs.ec2_ip }}"
-          backend_url: "http://${{ needs.terraform.outputs.ec2_ip }}"
-
-          google_client_id: "${{ secrets.GOOGLE_CLIENT_ID }}"
-          google_client_secret: "${{ secrets.GOOGLE_CLIENT_SECRET }}"
-          google_callback_url: "http://${{ needs.terraform.outputs.ec2_ip }}/api/auth/google/callback"
-
-          adzuna_app_id: "${{ secrets.ADZUNA_APP_ID }}"
-          adzuna_app_key: "${{ secrets.ADZUNA_APP_KEY }}"
+          mkdir -p devops/ansible/inventory
+          cat > devops/ansible/inventory/hosts.ini <<EOF
+          [monitoring]
+          monitor-host ansible_host=${{ needs.terraform.outputs.ec2_ip }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy_key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=accept-new'
           EOF
 
+      # Write CI secrets into Ansible group variables
+      - name: Write group_vars from GitHub Secrets
+        env:
+          REGISTRY_USERNAME: ${{ github.actor }}
+          REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          BACKEND_IMAGE: ${{ needs.build-and-push.outputs.backend_tag }}
+          FRONTEND_IMAGE: ${{ needs.build-and-push.outputs.frontend_tag }}
+
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+
+          CLIENT_URL: http://${{ needs.terraform.outputs.ec2_ip }}
+          BACKEND_URL: http://${{ needs.terraform.outputs.ec2_ip }}:3000
+
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_CALLBACK_URL: http://${{ needs.terraform.outputs.ec2_ip }}:3000/api/auth/google/callback
+
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
+
+        run: |
+          mkdir -p devops/ansible/inventory/group_vars/all
+
+          python - <<'PY'
+          import json
+          import os
+
+          variables = {
+              "registry_username": "REGISTRY_USERNAME",
+              "registry_password": "REGISTRY_PASSWORD",
+              "registry_url": None,
+              "backend_image": "BACKEND_IMAGE",
+              "frontend_image": "FRONTEND_IMAGE",
+              "mongo_uri": "MONGO_URI",
+              "jwt_secret": "JWT_SECRET",
+              "jwt_refresh_secret": "JWT_REFRESH_SECRET",
+              "groq_api_key": "GROQ_API_KEY",
+              "openai_api_key": "OPENAI_API_KEY",
+              "cloudinary_cloud_name": "CLOUDINARY_CLOUD_NAME",
+              "cloudinary_api_key": "CLOUDINARY_API_KEY",
+              "cloudinary_api_secret": "CLOUDINARY_API_SECRET",
+              "client_url": "CLIENT_URL",
+              "backend_url": "BACKEND_URL",
+              "google_client_id": "GOOGLE_CLIENT_ID",
+              "google_client_secret": "GOOGLE_CLIENT_SECRET",
+              "google_callback_url": "GOOGLE_CALLBACK_URL",
+              "adzuna_app_id": "ADZUNA_APP_ID",
+              "adzuna_app_key": "ADZUNA_APP_KEY",
+          }
+
+          data = {
+              key: ("ghcr.io" if env_name is None else os.environ.get(env_name, ""))
+              for key, env_name in variables.items()
+          }
+
+          with open(
+              "devops/ansible/inventory/group_vars/all/99-ci.json",
+              "w"
+          ) as file:
+              json.dump(data, file, indent=2)
+          PY
+
+      # Run Ansible deployment
       - name: Run Ansible playbook
         run: |
           cd devops/ansible
           export ANSIBLE_CONFIG="$PWD/ansible.cfg"
           ansible-playbook -i inventory/hosts.ini playbooks/site.yml
-          
-      - name: Health check
-        run: |
-          curl --fail --retry 5 --retry-delay 5 \
-            "http://${{ needs.terraform.outputs.ec2_ip }}/api/health"
 
+      # Check backend health (single check)
+      - name: Check Backend Health
+        run: |
+          BACKEND_URL="http://${{ needs.terraform.outputs.ec2_ip }}:3000"
+
+          echo "Checking: ${BACKEND_URL}/api/health"
+
+          curl --fail --retry 5 --retry-delay 5 \
+            "${BACKEND_URL}/api/health"
+
+      # Always revoke the temporary SSH access
       - name: Revoke runner IP from port 22
         if: always() && steps.sg.outputs.runner_ip != ''
         run: |
           aws ec2 revoke-security-group-ingress \
             --group-id "${{ needs.terraform.outputs.sg_id }}" \
-            --protocol tcp --port 22 --cidr "${{ steps.sg.outputs.runner_ip }}/32"
+            --protocol tcp \
+            --port 22 \
+            --cidr "${{ steps.sg.outputs.runner_ip }}/32"
 
-      - name: Clean up local secrets file
+      # Always remove temporary credentials and secrets
+      - name: Clean up local secrets files
         if: always()
-        run: rm -f devops/ansible/group_vars/all.yml ~/.ssh/deploy_key.pem
+        run: |
+          rm -f devops/ansible/inventory/group_vars/all/99-ci.json
+          rm -f ~/.ssh/deploy_key.pem
