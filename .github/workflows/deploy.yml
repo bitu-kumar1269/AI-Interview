@@ -229,8 +229,9 @@ jobs:
       - name: Run Ansible playbook
         run: |
           cd devops/ansible
+          export ANSIBLE_CONFIG="$PWD/ansible.cfg"
           ansible-playbook -i inventory/hosts.ini playbooks/site.yml
-
+          
       - name: Health check
         run: |
           curl --fail --retry 5 --retry-delay 5 \
