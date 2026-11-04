@@ -123,8 +123,8 @@ jobs:
       - name: Terraform plan
         run: |
           terraform plan \
-            -var="ssh_key_name=${{ secrets.EC2_KEY_PAIR_NAME }}" \
-            -var="allowed_ssh_cidr=${{ secrets.ALLOWED_SSH_CIDR }}" \
+            -var="key_name=${{ secrets.EC2_KEY_PAIR_NAME }}" \
+            -var="admin_cidr=${{ secrets.ALLOWED_SSH_CIDR }}" \
             -out=tfplan
 
       - name: Terraform apply
