@@ -229,7 +229,7 @@ jobs:
       - name: Run Ansible playbook
         run: |
           cd devops/ansible
-          ansible-playbook -i inventory.ini site.yml
+          ansible-playbook -i inventory/hosts.ini playbooks/site.yml
 
       - name: Health check
         run: |
