@@ -145,6 +145,7 @@ jobs:
 
   ansible-deploy:
     runs-on: ubuntu-latest
+    environment: production
     needs: [build-and-push, terraform]
     permissions:
       contents: read
