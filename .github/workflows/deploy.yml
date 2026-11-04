@@ -181,10 +181,20 @@ jobs:
           echo "runner_ip=${RUNNER_IP}" >> "$GITHUB_OUTPUT"
 
       - name: Write SSH private key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
         run: |
+          set -euo pipefail
+
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key.pem
+
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/deploy_key.pem
+
           chmod 600 ~/.ssh/deploy_key.pem
+
+          ssh-keygen -y -f ~/.ssh/deploy_key.pem > /dev/null
+
+          echo "SSH private key validated successfully"
 
       - name: Write dynamic inventory
         run: |
