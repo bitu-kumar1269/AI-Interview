@@ -89,6 +89,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Debug GitHub OIDC claims
+        working-directory: .
         run: |
           RESPONSE=$(curl -s \
             -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
@@ -108,8 +109,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-          # role-to-assume: arn:aws:iam::700922282359:role/github-actions-ai-interview
+          # role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::700922282359:role/github-actions-ai-interview
           aws-region: ap-south-1
           audience: sts.amazonaws.com
 
@@ -174,8 +175,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-          # role-to-assume: arn:aws:iam::700922282359:role/github-actions-ai-interview
+          # role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::700922282359:role/github-actions-ai-interview
           aws-region: ap-south-1
           audience: sts.amazonaws.com
 
