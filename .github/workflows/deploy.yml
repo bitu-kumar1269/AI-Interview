@@ -88,29 +88,12 @@ jobs:
         working-directory: devops/terraform
     steps:
       - uses: actions/checkout@v4
-      - name: Debug GitHub OIDC claims
-        working-directory: .
-        run: |
-          RESPONSE=$(curl -s \
-            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com")
-
-          echo "$RESPONSE" | python3 -c '
-          import sys, json, base64
-          data = json.load(sys.stdin)
-          token = data["value"]
-          payload = token.split(".")[1]
-          payload += "=" * (-len(payload) % 4)
-          claims = json.loads(base64.urlsafe_b64decode(payload))
-          print("ISS:", claims.get("iss"))
-          print("AUD:", claims.get("aud"))
-          print("SUB:", claims.get("sub"))
-          '
+      
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          # role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-          role-to-assume: arn:aws:iam::700922282359:role/github-actions-ai-interviewer
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          # role-to-assume: arn:aws:iam::700922282359:role/github-actions-ai-interviewer
           aws-region: ap-south-1
           audience: sts.amazonaws.com
 
@@ -175,8 +158,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          # role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-          role-to-assume: arn:aws:iam::700922282359:role/github-actions-ai-interviewer
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          # role-to-assume: arn:aws:iam::700922282359:role/github-actions-ai-interviewer
           aws-region: ap-south-1
           audience: sts.amazonaws.com
 
