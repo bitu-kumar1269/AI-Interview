@@ -85,7 +85,7 @@ jobs:
       sg_id: ${{ steps.outputs.outputs.sg_id }}
     defaults:
       run:
-        working-directory: terraform
+        working-directory: devops/terraform
     steps:
       - uses: actions/checkout@v4
       - name: Debug GitHub OIDC claims
@@ -169,7 +169,7 @@ jobs:
       - name: Install Ansible + Docker collection
         run: |
           pip install ansible
-          ansible-galaxy collection install -r ansible/requirements.yml
+          ansible-galaxy collection install -r devops/ansible/requirements.yml
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -201,7 +201,7 @@ jobs:
 
       - name: Write dynamic inventory
         run: |
-          cat > ansible/inventory.ini <<EOF
+          cat > devops/ansible/inventory.ini <<EOF
           [app_servers]
           app1 ansible_host=${{ needs.terraform.outputs.ec2_ip }} ansible_user=ec2-user ansible_ssh_private_key_file=~/.ssh/deploy_key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=accept-new'
           EOF
@@ -212,8 +212,8 @@ jobs:
         # CI-side alternative to Ansible Vault (group_vars/all.yml.example
         # documents the Vault-based path for manual/local runs).
         run: |
-          mkdir -p ansible/group_vars
-          cat > ansible/group_vars/all.yml <<EOF
+          mkdir -p devops/ansible/group_vars
+          cat > devops/ansible/group_vars/all.yml <<EOF
           registry_username: ${{ github.actor }}
           registry_password: ${{ secrets.GITHUB_TOKEN }}
           registry_url: ghcr.io
@@ -244,7 +244,7 @@ jobs:
 
       - name: Run Ansible playbook
         run: |
-          cd ansible
+          cd devops/ansible
           ansible-playbook -i inventory.ini site.yml
 
       - name: Health check
@@ -261,4 +261,4 @@ jobs:
 
       - name: Clean up local secrets file
         if: always()
-        run: rm -f ansible/group_vars/all.yml ~/.ssh/deploy_key.pem
+        run: rm -f devops/ansible/group_vars/all.yml ~/.ssh/deploy_key.pem
