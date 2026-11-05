@@ -244,6 +244,8 @@ jobs:
           ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
           ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
 
+          NAGIOS_ADMIN_PASSWORD: ${{ secrets.NAGIOS_ADMIN_PASSWORD }}
+
         run: |
           mkdir -p devops/ansible/inventory/group_vars/all
 
@@ -272,6 +274,7 @@ jobs:
               "google_callback_url": "GOOGLE_CALLBACK_URL",
               "adzuna_app_id": "ADZUNA_APP_ID",
               "adzuna_app_key": "ADZUNA_APP_KEY",
+              "nagios_admin_password": "NAGIOS_ADMIN_PASSWORD",
           }
 
           data = {
