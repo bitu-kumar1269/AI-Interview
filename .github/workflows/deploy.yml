@@ -289,6 +289,24 @@ jobs:
               json.dump(data, file, indent=2)
           PY
 
+      - name: Verify Nagios password was written
+        run: |
+          python - <<'PY'
+          import json
+
+          path = "devops/ansible/inventory/group_vars/all/99-ci.json"
+
+          with open(path) as f:
+              data = json.load(f)
+
+          password = data.get("nagios_admin_password", "")
+
+          if not password:
+              raise SystemExit("ERROR: Nagios password is empty!")
+
+          print("SUCCESS: Nagios password is present.")
+          PY
+
       # Run Ansible deployment
       - name: Run Ansible playbook
         run: |
