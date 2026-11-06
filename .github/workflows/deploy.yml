@@ -274,7 +274,7 @@ jobs:
               "google_callback_url": "GOOGLE_CALLBACK_URL",
               "adzuna_app_id": "ADZUNA_APP_ID",
               "adzuna_app_key": "ADZUNA_APP_KEY",
-              "nagios_admin_password": "NAGIOS_ADMIN_PASSWORD",
+              "vault_nagios_admin_password": "NAGIOS_ADMIN_PASSWORD",
           }
 
           data = {
@@ -299,7 +299,7 @@ jobs:
           with open(path) as f:
               data = json.load(f)
 
-          password = data.get("nagios_admin_password", "")
+          password = data.get("vault_nagios_admin_password", "")
 
           if not password:
               raise SystemExit("ERROR: Nagios password is empty!")
