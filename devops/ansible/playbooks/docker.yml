@@ -1,0 +1,6 @@
+---
+- name: Install Docker on EC2
+  hosts: monitoring
+  become: true
+  roles:
+    - docker

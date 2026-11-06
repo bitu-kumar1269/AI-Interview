@@ -1,0 +1,6 @@
+---
+- name: Deploy AI-Interview application
+  hosts: monitoring
+  become: true
+  roles:
+    - app

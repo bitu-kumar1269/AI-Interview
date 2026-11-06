@@ -53,6 +53,14 @@ resource "aws_security_group" "monitoring" {
     cidr_blocks = [var.admin_cidr]
   }
 
+  ingress {
+    description = "AI Interview frontend"
+    from_port   = 8081
+    to_port     = 8081
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   dynamic "ingress" {
     for_each = var.web_allowed_cidrs
     content {

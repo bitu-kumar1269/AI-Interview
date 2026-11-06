@@ -13,5 +13,12 @@
 - name: Nagios monitoring configuration
   ansible.builtin.import_playbook: monitoring.yml
 
+- name: Docker installation
+  ansible.builtin.import_playbook: docker.yml
+
+- name: AI-Interview application deployment
+  ansible.builtin.import_playbook: app.yml
+
 - name: Verification
   ansible.builtin.import_playbook: verify.yml
+

@@ -1,0 +1,99 @@
+---
+- name: Create application deployment directory
+  ansible.builtin.file:
+    path: /opt/ai-interview
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Copy production Docker Compose file
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../../docker-compose.prod.yml"
+    dest: /opt/ai-interview/docker-compose.prod.yml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Create Docker Compose image configuration
+  ansible.builtin.template:
+    src: compose.env.j2
+    dest: /opt/ai-interview/.env
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Create backend environment file
+  ansible.builtin.template:
+    src: backend.env.j2
+    dest: /opt/ai-interview/backend.env
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+
+- name: Authenticate to GitHub Container Registry
+  ansible.builtin.command:
+    argv:
+      - docker
+      - login
+      - ghcr.io
+      - --username
+      - "{{ registry_username }}"
+      - --password-stdin
+    stdin: "{{ registry_password }}"
+  no_log: true
+  changed_when: true
+
+- name: Pull application images
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - -f
+      - docker-compose.prod.yml
+      - pull
+  args:
+    chdir: /opt/ai-interview
+  changed_when: true
+
+- name: Start application containers
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - -f
+      - docker-compose.prod.yml
+      - up
+      - -d
+      - --remove-orphans
+  args:
+    chdir: /opt/ai-interview
+  changed_when: true
+
+- name: Log out from GitHub Container Registry
+  ansible.builtin.command:
+    argv:
+      - docker
+      - logout
+      - ghcr.io
+  changed_when: false
+  failed_when: false
+
+- name: Wait for application health endpoint
+  ansible.builtin.uri:
+    url: http://127.0.0.1:8081/api/health
+    method: GET
+    status_code: 200
+    return_content: true
+  register: app_health
+  retries: 12
+  delay: 10
+  until: app_health.status == 200
+
+- name: Verify application health response
+  ansible.builtin.assert:
+    that:
+      - app_health.json.success | bool
+    success_msg: "AI-Interview application is healthy."
+    fail_msg: "AI-Interview health endpoint did not report success."
