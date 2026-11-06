@@ -1,13 +1,7 @@
----
-# Whole workflow, in dependency order:
-#   common     -> baseline OS (Ansible-owned)
-#   puppet     -> install Puppet, apply manifests (Puppet-owned resources)
-#   monitoring -> Nagios configuration (Ansible-owned) + validation
-#   verify     -> prove everything works
-- name: Baseline configuration
+- name: Common server configuration
   ansible.builtin.import_playbook: common.yml
 
-- name: Puppet installation and first enforcement run
+- name: Puppet configuration
   ansible.builtin.import_playbook: puppet.yml
 
 - name: Nagios monitoring configuration
@@ -21,4 +15,3 @@
 
 - name: Verification
   ansible.builtin.import_playbook: verify.yml
-
