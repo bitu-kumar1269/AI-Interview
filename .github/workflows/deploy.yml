@@ -197,13 +197,13 @@ jobs:
 
           echo "SSH private key validated successfully"
 
-      - name: Write dynamic inventory
-        run: |
-          mkdir -p devops/ansible/inventory
-          cat > devops/ansible/inventory/hosts.ini <<EOF
-          [monitoring]
-          monitor-host ansible_host=${{ needs.terraform.outputs.ec2_ip }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy_key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=accept-new'
-          EOF
+      # - name: Write dynamic inventory
+      #   run: |
+      #     mkdir -p devops/ansible/inventory
+      #     cat > devops/ansible/inventory/hosts.ini <<EOF
+      #     [monitoring]
+      #     monitor-host ansible_host=${{ needs.terraform.outputs.ec2_ip }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/deploy_key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=accept-new'
+      #     EOF
 
       
       # Create Ansible inventory in the correct location
@@ -234,12 +234,12 @@ jobs:
           CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
 
-          CLIENT_URL: http://${{ needs.terraform.outputs.ec2_ip }}
-          BACKEND_URL: http://${{ needs.terraform.outputs.ec2_ip }}:3000
+          CLIENT_URL: http://${{ needs.terraform.outputs.ec2_ip }}:8081
+          BACKEND_URL: http://${{ needs.terraform.outputs.ec2_ip }}:8081
 
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_CALLBACK_URL: http://${{ needs.terraform.outputs.ec2_ip }}:3000/api/auth/google/callback
+          GOOGLE_CALLBACK_URL: http://${{ needs.terraform.outputs.ec2_ip }}:8081/api/auth/google/callback
 
           ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
           ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
@@ -317,7 +317,7 @@ jobs:
       # Check backend health (single check)
       - name: Check Backend Health
         run: |
-          BACKEND_URL="http://${{ needs.terraform.outputs.ec2_ip }}:3000"
+          BACKEND_URL="http://${{ needs.terraform.outputs.ec2_ip }}:8081"
 
           echo "Checking: ${BACKEND_URL}/api/health"
 
